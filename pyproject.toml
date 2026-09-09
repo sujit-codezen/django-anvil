@@ -35,10 +35,10 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/sujit-codezen/django-forge"
-Documentation = "https://sujit-codezen.github.io/django-forge/"
-Repository = "https://github.com/sujit-codezen/django-forge"
-Issues = "https://github.com/sujit-codezen/django-forge/issues"
+Homepage = "https://github.com/sujit-codezen/django-anvil"
+Documentation = "https://sujit-codezen.github.io/django-anvil/"
+Repository = "https://github.com/sujit-codezen/django-anvil"
+Issues = "https://github.com/sujit-codezen/django-anvil/issues"
 
 [project.optional-dependencies]
 dev = [

@@ -17,7 +17,7 @@ the PyPI project.
    |---|---|
    | PyPI Project Name | `django-anvil` |
    | Owner | `sujit-codezen` |
-   | Repository name | `django-forge` |
+   | Repository name | `django-anvil` |
    | Workflow name | `publish.yml` |
    | Environment name | `pypi` |
 
