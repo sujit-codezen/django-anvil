@@ -10,7 +10,7 @@ disk, and the only thing `forge ai --apply` calls after a human types
 import pytest
 from django.test import override_settings
 
-from django_forge.ai.suggest import (
+from django_anvil.ai.suggest import (
     ProposedChange,
     _parse_response,
     apply_changes,
@@ -114,7 +114,7 @@ def test_apply_changes_reports_updated_for_an_existing_file(tmp_path):
 def test_suggest_feature_uses_configured_provider_and_parses_its_response(tmp_path):
     with override_settings(
         BASE_DIR=tmp_path,
-        FORGE_AI_PROVIDER="django_forge.ai.providers.StaticProvider",
+        FORGE_AI_PROVIDER="django_anvil.ai.providers.StaticProvider",
         FORGE_AI_STATIC_RESPONSE=_TWO_FILE_RESPONSE,
     ):
         changes = suggest_feature("add a Tag model", "products")

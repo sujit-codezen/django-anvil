@@ -4,7 +4,7 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
 
-from django_forge.rbac.models import Role
+from django_anvil.rbac.models import Role
 
 from ..models import Review
 

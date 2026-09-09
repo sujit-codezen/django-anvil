@@ -2,7 +2,7 @@ from django.conf import settings
 from django.db import models
 from simple_history.models import HistoricalRecords
 
-from django_forge.tenancy.models import TenantScopedModel
+from django_anvil.tenancy.models import TenantScopedModel
 
 
 class Product(TenantScopedModel):

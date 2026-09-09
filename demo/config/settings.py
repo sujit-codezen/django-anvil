@@ -39,9 +39,9 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "rest_framework",
     "django_filters",
-    "django_forge",
-    "django_forge.rbac",
-    "django_forge.tenancy",
+    "django_anvil",
+    "django_anvil.rbac",
+    "django_anvil.tenancy",
     "simple_history",
     "products",
 ]
@@ -52,7 +52,7 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
-    "django_forge.tenancy.middleware.CurrentOrganizationMiddleware",
+    "django_anvil.tenancy.middleware.CurrentOrganizationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]

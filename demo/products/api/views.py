@@ -1,8 +1,8 @@
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters
 from rest_framework.viewsets import ModelViewSet
-from django_forge.mixins import OwnerScopedViewSetMixin, SoftDeleteViewSetMixin, TenantScopedViewSetMixin
-from django_forge.rbac.permissions import ResourcePermission
+from django_anvil.mixins import OwnerScopedViewSetMixin, SoftDeleteViewSetMixin, TenantScopedViewSetMixin
+from django_anvil.rbac.permissions import ResourcePermission
 
 from ..models import Coupon, Product, Review, Tag
 from .serializers import CouponSerializer, ProductSerializer, ReviewSerializer, TagSerializer

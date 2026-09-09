@@ -1,7 +1,7 @@
 // Static search index for the docs site -- no server, no build step.
 // Each entry: page (file), title (heading text), section (parent page title).
 const SEARCH_INDEX = [
-  { page: "index.html", title: "Django Forge", section: "Home", desc: "Overview and quick links" },
+  { page: "index.html", title: "Django Anvil", section: "Home", desc: "Overview and quick links" },
   { page: "index.html#why-forge", title: "Why Forge", section: "Home", desc: "The boilerplate problem this solves" },
   { page: "index.html#how-it-works", title: "How it works", section: "Home", desc: "Define, generate, ship" },
   { page: "index.html#principles", title: "Principles", section: "Home", desc: "Wrap don't reinvent, fails closed, no black box" },

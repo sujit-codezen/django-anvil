@@ -48,7 +48,7 @@ class OwnerScopedViewSetMixin:
 
 class TenantScopedViewSetMixin:
     """Scopes the queryset and new rows to the current request's
-    organization (see django_forge.tenancy.context).
+    organization (see django_anvil.tenancy.context).
 
     Resolves the organization itself, in `initial()`, rather than relying
     on CurrentOrganizationMiddleware: DRF authentication (token/JWT, or
@@ -72,15 +72,15 @@ class TenantScopedViewSetMixin:
     def initial(self, request, *args, **kwargs):
         super().initial(request, *args, **kwargs)
 
-        from django_forge.tenancy.context import set_current_organization_id
-        from django_forge.tenancy.resolver import resolve_organization_id
+        from django_anvil.tenancy.context import set_current_organization_id
+        from django_anvil.tenancy.resolver import resolve_organization_id
 
         self._organization_context_token = set_current_organization_id(
             resolve_organization_id(request)
         )
 
     def finalize_response(self, request, response, *args, **kwargs):
-        from django_forge.tenancy.context import reset_current_organization_id
+        from django_anvil.tenancy.context import reset_current_organization_id
 
         token = getattr(self, "_organization_context_token", None)
         if token is not None:
@@ -92,7 +92,7 @@ class TenantScopedViewSetMixin:
         return model.objects.all()
 
     def perform_create(self, serializer):
-        from django_forge.tenancy.context import get_current_organization_id
+        from django_anvil.tenancy.context import get_current_organization_id
 
         serializer.save(organization_id=get_current_organization_id())
 

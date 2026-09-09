@@ -4,8 +4,8 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
 
-from django_forge.rbac.models import Role
-from django_forge.tenancy.models import Organization, OrganizationMembership
+from django_anvil.rbac.models import Role
+from django_anvil.tenancy.models import Organization, OrganizationMembership
 
 from ..models import Tag
 

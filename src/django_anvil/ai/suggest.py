@@ -23,7 +23,7 @@ from .providers import get_provider
 
 _FILE_BLOCK_RE = re.compile(r"===FILE: (?P<path>.+?)===\n(?P<content>.*?)\n===ENDFILE===", re.DOTALL)
 
-_SYSTEM_PROMPT = """You are extending a Django project that uses Django Forge, a \
+_SYSTEM_PROMPT = """You are extending a Django project that uses Django Anvil, a \
 toolkit that generates DRF APIs from declarative Resource classes.
 
 Conventions to follow exactly:
@@ -31,7 +31,7 @@ Conventions to follow exactly:
 - Every model that should get a generated API needs a matching Resource
   subclass in <app>/resources.py, for example:
 
-    from django_forge.core.resource import Resource
+    from django_anvil.core.resource import Resource
     from .models import Coupon
 
     class CouponResource(Resource):

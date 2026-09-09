@@ -5,7 +5,7 @@ project's existing conventions instead of inventing its own.
 
 from django.apps import apps
 
-from django_forge.core.registry import registry
+from django_anvil.core.registry import registry
 
 _SKIP_APP_LABELS = {
     "admin",
@@ -14,7 +14,7 @@ _SKIP_APP_LABELS = {
     "sessions",
     "messages",
     "staticfiles",
-    "django_forge",
+    "django_anvil",
     "forge_rbac",
     "forge_tenancy",
 }

@@ -6,8 +6,8 @@ Safe to re-run: everything is get_or_create'd.
 from django.contrib.auth import get_user_model
 from django.core.management.base import BaseCommand
 
-from django_forge.rbac.models import Role
-from django_forge.tenancy.models import Organization, OrganizationMembership
+from django_anvil.rbac.models import Role
+from django_anvil.tenancy.models import Organization, OrganizationMembership
 from products.models import Coupon, Product, Review, Tag
 
 User = get_user_model()

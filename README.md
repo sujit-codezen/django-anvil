@@ -1,4 +1,4 @@
-# Django Forge
+# Django Anvil
 
 Declarative `Resource` classes that generate a DRF serializer, viewset,
 router urls, admin registration, RBAC enforcement, tenant scoping, and
@@ -21,12 +21,12 @@ pip install django-anvil
 Installing from a local checkout instead (for contributing to Forge itself):
 
 ```bash
-pip install -e /path/to/django-forge
+pip install -e /path/to/django-anvil
 ```
 
 One install, everything included — the AI providers (OpenAI, Anthropic,
 Gemini) and `django-simple-history` (for `audited = True`) are plain
-dependencies of django-forge itself, not opt-in extras. Nothing extra to
+dependencies of django-anvil itself, not opt-in extras. Nothing extra to
 remember; `FORGE_AI_PROVIDER` just picks which AI provider is actually
 *used*.
 
@@ -36,9 +36,9 @@ INSTALLED_APPS = [
     ...,
     "rest_framework",
     "django_filters",
-    "django_forge",
-    "django_forge.rbac",      # optional: only if you use permissions
-    "django_forge.tenancy",   # optional: only if you use tenant_scoped
+    "django_anvil",
+    "django_anvil.rbac",      # optional: only if you use permissions
+    "django_anvil.tenancy",   # optional: only if you use tenant_scoped
     "simple_history",         # optional: only if you use audited=True
     "your_app",
 ]
@@ -46,7 +46,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     ...,
     "django.contrib.auth.middleware.AuthenticationMiddleware",
-    "django_forge.tenancy.middleware.CurrentOrganizationMiddleware",  # optional
+    "django_anvil.tenancy.middleware.CurrentOrganizationMiddleware",  # optional
     ...,
 ]
 ```
@@ -56,8 +56,8 @@ MIDDLEWARE = [
 1. Define a `Resource` next to your model, in `your_app/resources.py`:
 
     ```python
-    from django_forge.core.resource import Resource
-    from django_forge.mixins import SoftDeleteViewSetMixin, TimestampedSerializerMixin
+    from django_anvil.core.resource import Resource
+    from django_anvil.mixins import SoftDeleteViewSetMixin, TimestampedSerializerMixin
     from .models import Product
 
     class ProductResource(Resource):
@@ -127,7 +127,7 @@ permissions = {
 
 **Fails closed**: an action with no rule listed is denied to everyone,
 not allowed. Roles are just Django's own `Group`/`Permission` system,
-exposed as `django_forge.rbac.models.Role` (a friendlier-named proxy for
+exposed as `django_anvil.rbac.models.Role` (a friendlier-named proxy for
 `Group`) with a `.grant("app_label.codename")` helper — manage them from
 the normal Django admin "Roles" section, no new UI to learn. Generating
 a Resource with `permissions` set also writes an
@@ -142,7 +142,7 @@ an `organization_id` and auto-scoped. Opt in per model by inheriting
 `tenant_scoped = True` on the Resource:
 
 ```python
-from django_forge.tenancy.models import TenantScopedModel
+from django_anvil.tenancy.models import TenantScopedModel
 
 class Product(TenantScopedModel):
     ...
@@ -203,7 +203,7 @@ changed. In a non-interactive session (no TTY — CI, a piped command),
 
 Four providers ship, chosen via `FORGE_AI_PROVIDER` (a dotted path — nothing
 in the AI engine itself is hard-locked to one vendor). All three real
-providers' SDKs come with a plain `pip install django-forge` — no
+providers' SDKs come with a plain `pip install django-anvil` — no
 extras needed:
 
 | Provider | API key |
@@ -217,7 +217,7 @@ Switching providers is exactly this — no installing anything else, ever:
 
 ```python
 # settings.py
-FORGE_AI_PROVIDER = "django_forge.ai.providers.AnthropicProvider"  # or OpenAIProvider / GeminiProvider
+FORGE_AI_PROVIDER = "django_anvil.ai.providers.AnthropicProvider"  # or OpenAIProvider / GeminiProvider
 FORGE_AI_MODEL = "claude-sonnet-5"  # optional override, per-provider default otherwise
 FORGE_AI_API_KEY = env("MY_KEY")    # optional; falls back to each SDK's own env var
 ```
@@ -226,7 +226,7 @@ FORGE_AI_API_KEY = env("MY_KEY")    # optional; falls back to each SDK's own env
 end-of-lifed `google-generativeai`. Writing your own provider (a
 self-hosted model, an internal proxy, a vendor not listed above) is one
 class with one method — see `CustomProviderExample` in
-`django_forge/ai/providers.py` for a working template, and
+`django_anvil/ai/providers.py` for a working template, and
 `tests/test_ai_providers.py` for how each shipped provider is verified
 against a mocked SDK (no real API key needed to run those tests).
 
@@ -237,7 +237,7 @@ Set `audited = True` on a Resource and add
 the *admin* integration — `SimpleHistoryAdmin`, giving a full change
 log in the admin UI — but never edits your model file for you, the same
 policy as `TenantScopedModel`). `django-simple-history` is already
-installed as part of django-forge — just add `"simple_history"` to
+installed as part of django-anvil — just add `"simple_history"` to
 `INSTALLED_APPS`. `forge doctor` flags a Resource that says
 `audited = True` but whose model doesn't have the field yet.
 
@@ -258,7 +258,7 @@ Static checks, no database needed — safe to run in CI before `migrate`:
 
 ## Mixins
 
-`django_forge.mixins` ships real, reusable behavior — not just codegen
+`django_anvil.mixins` ships real, reusable behavior — not just codegen
 templates. A Resource opts in by listing them; the generator wires the
 matching one into the serializer or the viewset base classes based on
 its name (`...SerializerMixin` vs `...ViewSetMixin`):

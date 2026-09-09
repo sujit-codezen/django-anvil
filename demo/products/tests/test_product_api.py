@@ -4,7 +4,7 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
 
-from django_forge.tenancy.models import Organization, OrganizationMembership
+from django_anvil.tenancy.models import Organization, OrganizationMembership
 
 from ..models import Product
 
@@ -15,17 +15,23 @@ def test_organization(db):
 
 
 @pytest.fixture
-def api_client(test_organization):
-    client = APIClient()
-    # This resource has RBAC/tenancy rules (see the other generated test
-    # files for those); this file only checks that the CRUD flow itself
-    # works, so it runs as a superuser with organization membership to
-    # bypass authorization concerns rather than testing them.
+def test_actor(test_organization):
+    # This resource has RBAC/tenancy/ownership rules (see the other
+    # generated test files for those); this file only checks that the
+    # CRUD flow itself works, so this one shared user is a superuser
+    # (bypasses RBAC) who also owns/belongs-to anything created directly
+    # below, rather than testing any of those rules itself.
     user = get_user_model().objects.create_superuser(
-        username="crud-test-admin", email="crud-test-admin@example.com", password="pass1234"
+        username="crud-test-actor", email="crud-test-actor@example.com", password="pass1234"
     )
     OrganizationMembership.objects.create(user=user, organization=test_organization)
-    client.force_authenticate(user)
+    return user
+
+
+@pytest.fixture
+def api_client(test_actor):
+    client = APIClient()
+    client.force_authenticate(test_actor)
     return client
 
 

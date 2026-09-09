@@ -3,13 +3,13 @@ import sys
 from django.apps import apps
 from django.core.management.base import BaseCommand, CommandError
 
-from django_forge.core.generator import generate
-from django_forge.core.registry import registry
+from django_anvil.core.generator import generate
+from django_anvil.core.registry import registry
 
 
 class Command(BaseCommand):
     help = (
-        "Django Forge: turn a declarative Resource into a full DRF API + admin + "
+        "Django Anvil: turn a declarative Resource into a full DRF API + admin + "
         "tests (`resource`), list what's registered (`list`), propose a feature as "
         "a reviewable diff (`ai`), or check the project for common problems (`doctor`)."
     )
@@ -104,7 +104,7 @@ class Command(BaseCommand):
             self.stdout.write(f"{resource.__name__} -> {resource.app_label()}.{resource.model_name()}")
 
     def _handle_ai(self, description, app_label, output_path, apply):
-        from django_forge.ai.suggest import apply_changes, build_diff, suggest_feature
+        from django_anvil.ai.suggest import apply_changes, build_diff, suggest_feature
 
         self.stdout.write("Asking the AI provider for a suggestion ...")
         try:
@@ -155,7 +155,7 @@ class Command(BaseCommand):
         return input(prompt).strip().lower() in ("y", "yes")
 
     def _handle_doctor(self):
-        from django_forge.doctor.checks import run_checks
+        from django_anvil.doctor.checks import run_checks
 
         style_by_level = {
             "ok": self.style.SUCCESS,

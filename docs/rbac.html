@@ -3,14 +3,14 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>RBAC — Django Forge</title>
+<title>RBAC — Django Anvil</title>
 <link rel="stylesheet" href="assets/style.css" />
 </head>
 <body>
 
 <div class="topbar">
   <button class="menu-toggle" aria-label="Toggle menu">☰</button>
-  <a href="index.html" class="brand">django-forge <span class="version-pill">v0.1</span></a>
+  <a href="index.html" class="brand">django-anvil <span class="version-pill">v0.1</span></a>
   <div class="search-trigger"><span>🔍</span><span>Search docs...</span><kbd>⌘K</kbd></div>
   <div class="right-links"><a class="gh-link" href="https://github.com/sujit-codezen/django-anvil" target="_blank" rel="noopener"><span>GitHub</span></a></div>
 </div>
@@ -83,19 +83,19 @@
     <code>delete_&lt;model&gt;</code>, <code>view_&lt;model&gt;</code>, namespaced under the app label.</p>
 
     <h2 id="roles">Roles = Django Groups</h2>
-    <p><code>django_forge.rbac.models.Role</code> is a proxy model for Django's own
+    <p><code>django_anvil.rbac.models.Role</code> is a proxy model for Django's own
     <code>Group</code> — <code>Role.objects.create(...)</code> writes to the same
     <code>auth_group</code> table Django admin already manages. The only actually-custom piece is
     <code>.grant()</code>, a convenience wrapper around looking up real <code>Permission</code>
     objects by codename:</p>
 
-    <pre><code><span class="tok-kw">from</span> django_forge.rbac.models <span class="tok-kw">import</span> Role
+    <pre><code><span class="tok-kw">from</span> django_anvil.rbac.models <span class="tok-kw">import</span> Role
 
 manager_role = Role.objects.create(name=<span class="tok-str">"Manager"</span>)
 manager_role.grant(<span class="tok-str">"products.add_product"</span>, <span class="tok-str">"products.change_product"</span>)
 alice.groups.add(manager_role)  <span class="tok-com"># plain Django, User.groups is unmodified</span></code></pre>
 
-    <p>You could delete <code>django_forge.rbac</code> entirely and get the identical result with
+    <p>You could delete <code>django_anvil.rbac</code> entirely and get the identical result with
     <code>Group</code>/<code>Permission</code> directly — Forge's version is just shorter to type.</p>
 
     <h2 id="fail-closed">Fails closed by default</h2>

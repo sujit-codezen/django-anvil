@@ -3,14 +3,14 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>The Resource class — Django Forge</title>
+<title>The Resource class — Django Anvil</title>
 <link rel="stylesheet" href="assets/style.css" />
 </head>
 <body>
 
 <div class="topbar">
   <button class="menu-toggle" aria-label="Toggle menu">☰</button>
-  <a href="index.html" class="brand">django-forge <span class="version-pill">v0.1</span></a>
+  <a href="index.html" class="brand">django-anvil <span class="version-pill">v0.1</span></a>
   <div class="search-trigger"><span>🔍</span><span>Search docs...</span><kbd>⌘K</kbd></div>
   <div class="right-links"><a class="gh-link" href="https://github.com/sujit-codezen/django-anvil" target="_blank" rel="noopener"><span>GitHub</span></a></div>
 </div>
@@ -44,8 +44,8 @@
     automatically (the same way Django's own <code>admin.py</code> autodiscovery works) —
     no manual registration call needed.</p>
 
-    <pre><code><span class="tok-kw">from</span> django_forge.core.resource <span class="tok-kw">import</span> Resource
-<span class="tok-kw">from</span> django_forge.mixins <span class="tok-kw">import</span> SoftDeleteViewSetMixin, TimestampedSerializerMixin
+    <pre><code><span class="tok-kw">from</span> django_anvil.core.resource <span class="tok-kw">import</span> Resource
+<span class="tok-kw">from</span> django_anvil.mixins <span class="tok-kw">import</span> SoftDeleteViewSetMixin, TimestampedSerializerMixin
 <span class="tok-kw">from</span> .models <span class="tok-kw">import</span> Product
 
 <span class="tok-kw">class</span> <span class="tok-fn">ProductResource</span>(Resource):
@@ -89,7 +89,7 @@
     project; that's the point.</p>
 
     <h2 id="mixins">Mixins</h2>
-    <p><code>django_forge.mixins</code> ships real, reusable behavior — not codegen templates. A
+    <p><code>django_anvil.mixins</code> ships real, reusable behavior — not codegen templates. A
     Resource opts in by listing them in <code>mixins</code>; the generator wires the matching one
     into the serializer or viewset base classes based on its name
     (<code>...SerializerMixin</code> vs <code>...ViewSetMixin</code>).</p>

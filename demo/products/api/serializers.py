@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from django_forge.mixins import TimestampedSerializerMixin
+from django_anvil.mixins import TimestampedSerializerMixin
 
 from ..models import Coupon, Product, Review, Tag
 

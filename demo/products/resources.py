@@ -1,5 +1,5 @@
-from django_forge.core.resource import Resource
-from django_forge.mixins import OwnerScopedViewSetMixin, SoftDeleteViewSetMixin, TimestampedSerializerMixin
+from django_anvil.core.resource import Resource
+from django_anvil.mixins import OwnerScopedViewSetMixin, SoftDeleteViewSetMixin, TimestampedSerializerMixin
 
 from .models import Coupon, Product, Review, Tag
 

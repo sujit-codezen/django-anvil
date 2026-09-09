@@ -9,7 +9,7 @@ description = "Declarative Resource -> API + admin + tests generator for Django/
 readme = "README.md"
 requires-python = ">=3.10"
 license = { text = "MIT" }
-authors = [{ name = "Django Forge contributors" }]
+authors = [{ name = "Django Anvil contributors" }]
 keywords = ["django", "django-rest-framework", "drf", "codegen", "rbac", "multi-tenancy"]
 classifiers = [
     "Development Status :: 3 - Alpha",
@@ -56,7 +56,7 @@ where = ["src"]
 # resource` breaks immediately. Editable installs (pip install -e .)
 # never hit this, since they point straight at the source tree, which
 # is why it went unnoticed until actually building a wheel.
-django_forge = ["templates/*.jinja"]
+django_anvil = ["templates/*.jinja"]
 
 [tool.pytest.ini_options]
 # demo/ is its own separate Django project with its own settings and its

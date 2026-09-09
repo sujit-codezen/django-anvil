@@ -7,7 +7,7 @@ from rest_framework import status
 from rest_framework.test import APIClient
 {% if tenant_scoped %}
 
-from django_forge.tenancy.models import Organization, OrganizationMembership
+from django_anvil.tenancy.models import Organization, OrganizationMembership
 {% endif %}
 
 from ..models import {{ model_name }}

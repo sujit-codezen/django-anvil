@@ -1,10 +1,10 @@
 from django.apps import AppConfig
 
 
-class DjangoForgeConfig(AppConfig):
+class DjangoAnvilConfig(AppConfig):
     default_auto_field = "django.db.models.BigAutoField"
-    name = "django_forge"
-    verbose_name = "Django Forge"
+    name = "django_anvil"
+    verbose_name = "Django Anvil"
 
     def ready(self):
         from django.utils.module_loading import autodiscover_modules

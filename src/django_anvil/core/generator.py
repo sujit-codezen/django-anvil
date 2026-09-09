@@ -339,7 +339,7 @@ def generate(resource, force: bool = False) -> list[str]:
 
     # --- viewset ------------------------------------------------------
     if resource.tenant_scoped:
-        from django_forge.mixins import TenantScopedViewSetMixin
+        from django_anvil.mixins import TenantScopedViewSetMixin
 
         # Last, right before ModelViewSet: it must be the one that
         # actually fetches the queryset (fresh, per request), with any
@@ -365,7 +365,7 @@ def generate(resource, force: bool = False) -> list[str]:
         "from rest_framework import filters",
         "from rest_framework.viewsets import ModelViewSet",
         *_group_mixin_imports(viewset_mixins),
-        *(["from django_forge.rbac.permissions import ResourcePermission"] if resource.permissions else []),
+        *(["from django_anvil.rbac.permissions import ResourcePermission"] if resource.permissions else []),
         f"from ..models import {model_name}",
         f"from .serializers import {model_name}Serializer",
     ]

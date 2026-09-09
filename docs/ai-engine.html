@@ -3,14 +3,14 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>AI engine — Django Forge</title>
+<title>AI engine — Django Anvil</title>
 <link rel="stylesheet" href="assets/style.css" />
 </head>
 <body>
 
 <div class="topbar">
   <button class="menu-toggle" aria-label="Toggle menu">☰</button>
-  <a href="index.html" class="brand">django-forge <span class="version-pill">v0.1</span></a>
+  <a href="index.html" class="brand">django-anvil <span class="version-pill">v0.1</span></a>
   <div class="search-trigger"><span>🔍</span><span>Search docs...</span><kbd>⌘K</kbd></div>
   <div class="right-links"><a class="gh-link" href="https://github.com/sujit-codezen/django-anvil" target="_blank" rel="noopener"><span>GitHub</span></a></div>
 </div>
@@ -86,9 +86,9 @@ Write 2 file(s) now (products/models.py, products/resources.py)? [y/N]: </code><
     <span class="tok-kw">def</span> <span class="tok-fn">complete</span>(self, system: <span class="tok-fn">str</span>, prompt: <span class="tok-fn">str</span>) -&gt; <span class="tok-fn">str</span>: ...</code></pre>
     <p>Swap providers with one setting — nothing else in the AI engine changes, and nothing
     extra to install: OpenAI, Anthropic, and Gemini's SDKs are all plain dependencies of
-    django-forge itself, so a single <code>pip install django-anvil</code> already has every
+    django-anvil itself, so a single <code>pip install django-anvil</code> already has every
     one of them.</p>
-    <pre><code><span class="tok-fn">FORGE_AI_PROVIDER</span> = <span class="tok-str">"django_forge.ai.providers.AnthropicProvider"</span>  <span class="tok-com"># dotted path to any AIProvider</span></code></pre>
+    <pre><code><span class="tok-fn">FORGE_AI_PROVIDER</span> = <span class="tok-str">"django_anvil.ai.providers.AnthropicProvider"</span>  <span class="tok-com"># dotted path to any AIProvider</span></code></pre>
 
     <table>
       <tr><th>Provider</th><th>API key</th><th>Default model</th></tr>
@@ -110,7 +110,7 @@ Write 2 file(s) now (products/models.py, products/resources.py)? [y/N]: </code><
     </div>
 
     <pre><code><span class="tok-com"># settings.py</span>
-<span class="tok-fn">FORGE_AI_PROVIDER</span> = <span class="tok-str">"django_forge.ai.providers.GeminiProvider"</span>
+<span class="tok-fn">FORGE_AI_PROVIDER</span> = <span class="tok-str">"django_anvil.ai.providers.GeminiProvider"</span>
 <span class="tok-fn">FORGE_AI_MODEL</span> = <span class="tok-str">"gemini-2.0-flash"</span>       <span class="tok-com"># optional override</span>
 <span class="tok-fn">FORGE_AI_API_KEY</span> = env(<span class="tok-str">"GEMINI_KEY"</span>)         <span class="tok-com"># optional override; else GOOGLE_API_KEY env var</span></code></pre>
 
@@ -120,7 +120,7 @@ Write 2 file(s) now (products/models.py, products/resources.py)? [y/N]: </code><
 
     <h3>Custom providers</h3>
     <p>Any vendor Forge doesn't ship a wrapper for yet — a self-hosted model, an internal proxy,
-    Azure OpenAI, Ollama — is the same shape. <code>django_forge.ai.providers.CustomProviderExample</code>
+    Azure OpenAI, Ollama — is the same shape. <code>django_anvil.ai.providers.CustomProviderExample</code>
     is a working template (a bare HTTP POST to a local Ollama-style endpoint):</p>
     <pre><code><span class="tok-kw">class</span> <span class="tok-fn">CustomProviderExample</span>(AIProvider):
     <span class="tok-kw">def</span> <span class="tok-fn">__init__</span>(self):
@@ -132,7 +132,7 @@ Write 2 file(s) now (products/models.py, products/resources.py)? [y/N]: </code><
         <span class="tok-kw">with</span> urllib.request.urlopen(request) <span class="tok-kw">as</span> response:
             <span class="tok-kw">return</span> json.loads(response.read())[<span class="tok-str">"response"</span>]</code></pre>
     <p>Write your own the same way — one class, one method, point <code>FORGE_AI_PROVIDER</code> at
-    its dotted path (it doesn't need to live inside <code>django_forge</code>; anywhere importable
+    its dotted path (it doesn't need to live inside <code>django_anvil</code>; anywhere importable
     in your project works, e.g. <code>"myapp.ai.MyProvider"</code>).</p>
 
     <div class="callout tip">

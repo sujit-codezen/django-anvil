@@ -12,7 +12,7 @@ from unittest import mock
 import pytest
 from django.test import override_settings
 
-from django_forge.ai.providers import (
+from django_anvil.ai.providers import (
     AnthropicProvider,
     GeminiProvider,
     OpenAIProvider,
@@ -103,7 +103,7 @@ def test_static_provider_without_configured_response_raises():
 
 def test_get_provider_resolves_dotted_path_from_settings():
     with override_settings(
-        FORGE_AI_PROVIDER="django_forge.ai.providers.StaticProvider",
+        FORGE_AI_PROVIDER="django_anvil.ai.providers.StaticProvider",
         FORGE_AI_STATIC_RESPONSE="ok",
     ):
         provider = get_provider()

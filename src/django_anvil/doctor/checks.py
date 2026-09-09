@@ -7,7 +7,7 @@ import dataclasses
 
 from django.conf import settings
 
-from django_forge.core.registry import registry
+from django_anvil.core.registry import registry
 
 
 @dataclasses.dataclass
@@ -80,7 +80,7 @@ def _check_resource(resource) -> list[CheckResult]:
     results = []
 
     if resource.tenant_scoped:
-        from django_forge.tenancy.models import TenantScopedModel
+        from django_anvil.tenancy.models import TenantScopedModel
 
         if not issubclass(model, TenantScopedModel):
             results.append(

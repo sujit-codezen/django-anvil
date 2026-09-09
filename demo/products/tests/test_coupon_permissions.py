@@ -4,8 +4,8 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
 
-from django_forge.rbac.models import Role
-from django_forge.tenancy.models import Organization, OrganizationMembership
+from django_anvil.rbac.models import Role
+from django_anvil.tenancy.models import Organization, OrganizationMembership
 
 from ..models import Coupon
 
@@ -30,6 +30,9 @@ class TestCouponPermissions:
         assert response.status_code in (status.HTTP_401_UNAUTHORIZED, status.HTTP_403_FORBIDDEN)
 
     def test_granted_user_can_view(self, api_client, test_organization):
+        # Created before the instance below: with OwnerScopedViewSetMixin,
+        # a user can only reach rows they own, so the granted user has to
+        # be the same one who owns whatever gets created here.
         user = User.objects.create_user(username="view-role-user", password="pass1234")
         OrganizationMembership.objects.create(user=user, organization=test_organization)
         role = Role.objects.create(name="Coupon view role")
@@ -45,12 +48,15 @@ class TestCouponPermissions:
         assert response.status_code in (status.HTTP_401_UNAUTHORIZED, status.HTTP_403_FORBIDDEN)
 
     def test_granted_user_can_create(self, api_client, test_organization):
-        payload = {'code': 'test-code', 'percent_off': 1, 'amount_off': '9.99', 'expires_at': '2026-01-01T00:00:00Z', 'max_uses': 1, 'is_active': True}
+        # Created before the instance below: with OwnerScopedViewSetMixin,
+        # a user can only reach rows they own, so the granted user has to
+        # be the same one who owns whatever gets created here.
         user = User.objects.create_user(username="create-role-user", password="pass1234")
         OrganizationMembership.objects.create(user=user, organization=test_organization)
         role = Role.objects.create(name="Coupon create role")
         role.grant("products.add_coupon")
         user.groups.add(role)
+        payload = {'code': 'test-code', 'percent_off': 1, 'amount_off': '9.99', 'expires_at': '2026-01-01T00:00:00Z', 'max_uses': 1, 'is_active': True}
         api_client.force_authenticate(user)
         response = api_client.post(reverse("coupons-list"), payload, format="json")
         assert response.status_code not in (status.HTTP_401_UNAUTHORIZED, status.HTTP_403_FORBIDDEN)
@@ -62,13 +68,16 @@ class TestCouponPermissions:
         assert response.status_code in (status.HTTP_401_UNAUTHORIZED, status.HTTP_403_FORBIDDEN)
 
     def test_granted_user_can_update(self, api_client, test_organization):
-        payload = {'code': 'test-code', 'percent_off': 1, 'amount_off': '9.99', 'expires_at': '2026-01-01T00:00:00Z', 'max_uses': 1, 'is_active': True}
-        instance = Coupon.objects.create(organization=test_organization, **payload)
+        # Created before the instance below: with OwnerScopedViewSetMixin,
+        # a user can only reach rows they own, so the granted user has to
+        # be the same one who owns whatever gets created here.
         user = User.objects.create_user(username="update-role-user", password="pass1234")
         OrganizationMembership.objects.create(user=user, organization=test_organization)
         role = Role.objects.create(name="Coupon update role")
         role.grant("products.change_coupon")
         user.groups.add(role)
+        payload = {'code': 'test-code', 'percent_off': 1, 'amount_off': '9.99', 'expires_at': '2026-01-01T00:00:00Z', 'max_uses': 1, 'is_active': True}
+        instance = Coupon.objects.create(organization=test_organization, **payload)
         api_client.force_authenticate(user)
         response = api_client.patch(reverse("coupons-detail", args=[instance.id]), payload, format="json")
         assert response.status_code not in (status.HTTP_401_UNAUTHORIZED, status.HTTP_403_FORBIDDEN)
@@ -80,13 +89,16 @@ class TestCouponPermissions:
         assert response.status_code in (status.HTTP_401_UNAUTHORIZED, status.HTTP_403_FORBIDDEN)
 
     def test_granted_user_can_delete(self, api_client, test_organization):
-        payload = {'code': 'test-code', 'percent_off': 1, 'amount_off': '9.99', 'expires_at': '2026-01-01T00:00:00Z', 'max_uses': 1, 'is_active': True}
-        instance = Coupon.objects.create(organization=test_organization, **payload)
+        # Created before the instance below: with OwnerScopedViewSetMixin,
+        # a user can only reach rows they own, so the granted user has to
+        # be the same one who owns whatever gets created here.
         user = User.objects.create_user(username="delete-role-user", password="pass1234")
         OrganizationMembership.objects.create(user=user, organization=test_organization)
         role = Role.objects.create(name="Coupon delete role")
         role.grant("products.delete_coupon")
         user.groups.add(role)
+        payload = {'code': 'test-code', 'percent_off': 1, 'amount_off': '9.99', 'expires_at': '2026-01-01T00:00:00Z', 'max_uses': 1, 'is_active': True}
+        instance = Coupon.objects.create(organization=test_organization, **payload)
         api_client.force_authenticate(user)
         response = api_client.delete(reverse("coupons-detail", args=[instance.id]))
         assert response.status_code not in (status.HTTP_401_UNAUTHORIZED, status.HTTP_403_FORBIDDEN)

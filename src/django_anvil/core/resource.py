@@ -3,7 +3,7 @@ generator turns into a serializer, a viewset, admin registration, and a
 test file.
 """
 
-from django_forge.core.registry import registry
+from django_anvil.core.registry import registry
 
 
 class Resource:

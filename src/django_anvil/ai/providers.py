@@ -1,10 +1,10 @@
-"""Pluggable LLM backends for the AI engine. Nothing in django_forge.ai
+"""Pluggable LLM backends for the AI engine. Nothing in django_anvil.ai
 hard-codes a vendor -- `get_provider()` reads the class to use from
 Django settings, so swapping providers never touches suggest.py.
 
 Ships four: OpenAI (default), Anthropic, Gemini, and a Static one for
 tests/CI. All three real providers' SDKs are plain dependencies of
-django-forge itself -- `pip install django-forge` alone gets you all of
+django-anvil itself -- `pip install django-anvil` alone gets you all of
 them, no extras to remember. FORGE_AI_PROVIDER just picks which one is
 actually *used* at runtime; the other two sit there unused rather than
 unavailable. Writing your own provider is exactly this shape -- see
@@ -26,8 +26,8 @@ class AIProvider(abc.ABC):
 class AnthropicProvider(AIProvider):
     """Needs an ANTHROPIC_API_KEY (or FORGE_AI_API_KEY in settings/env;
     falls back to the SDK's own env var if neither is set). The
-    'anthropic' package itself ships as a plain django-forge dependency,
-    so a normal `pip install django-forge` already has it.
+    'anthropic' package itself ships as a plain django-anvil dependency,
+    so a normal `pip install django-anvil` already has it.
     """
 
     def __init__(self, model: str | None = None, api_key: str | None = None):
@@ -35,11 +35,11 @@ class AnthropicProvider(AIProvider):
             import anthropic
         except ImportError as exc:
             # Shouldn't normally happen -- 'anthropic' is a plain
-            # dependency of django-forge itself. Only hit via --no-deps,
+            # dependency of django-anvil itself. Only hit via --no-deps,
             # a manually pruned environment, or similar.
             raise RuntimeError(
                 "The Anthropic provider needs the 'anthropic' package, which should already be "
-                "installed as part of django-forge. Try: pip install anthropic"
+                "installed as part of django-anvil. Try: pip install anthropic"
             ) from exc
 
         self._client = anthropic.Anthropic(api_key=api_key or getattr(settings, "FORGE_AI_API_KEY", None))
@@ -60,7 +60,7 @@ class OpenAIProvider(AIProvider):
     Override the model via FORGE_AI_MODEL -- the default below is just a
     reasonable starting point, not a promise it's OpenAI's current best
     model by the time you're reading this. The 'openai' package itself
-    ships as a plain django-forge dependency.
+    ships as a plain django-anvil dependency.
     """
 
     def __init__(self, model: str | None = None, api_key: str | None = None):
@@ -69,7 +69,7 @@ class OpenAIProvider(AIProvider):
         except ImportError as exc:
             raise RuntimeError(
                 "The OpenAI provider needs the 'openai' package, which should already be "
-                "installed as part of django-forge. Try: pip install openai"
+                "installed as part of django-anvil. Try: pip install openai"
             ) from exc
 
         self._client = OpenAI(api_key=api_key or getattr(settings, "FORGE_AI_API_KEY", None))
@@ -95,7 +95,7 @@ class GeminiProvider(AIProvider):
     -- Google has end-of-lifed the latter (it printed a deprecation
     warning pointing at this one during development), so this wraps the
     package Google actually wants new code to use. Ships as a plain
-    django-forge dependency, same as the other two real providers.
+    django-anvil dependency, same as the other two real providers.
     """
 
     def __init__(self, model: str | None = None, api_key: str | None = None):
@@ -104,7 +104,7 @@ class GeminiProvider(AIProvider):
         except ImportError as exc:
             raise RuntimeError(
                 "The Gemini provider needs the 'google-genai' package, which should already be "
-                "installed as part of django-forge. Try: pip install google-genai"
+                "installed as part of django-anvil. Try: pip install google-genai"
             ) from exc
 
         resolved_key = api_key or getattr(settings, "FORGE_AI_API_KEY", None)
@@ -159,6 +159,6 @@ class CustomProviderExample(AIProvider):
 
 
 def get_provider() -> AIProvider:
-    dotted_path = getattr(settings, "FORGE_AI_PROVIDER", "django_forge.ai.providers.OpenAIProvider")
+    dotted_path = getattr(settings, "FORGE_AI_PROVIDER", "django_anvil.ai.providers.OpenAIProvider")
     provider_cls = import_string(dotted_path)
     return provider_cls()
