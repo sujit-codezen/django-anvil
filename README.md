@@ -18,10 +18,6 @@ audit polish. See `demo/` for a working example (four resources —
 pip install djangoforge
 ```
 
-(The PyPI distribution is named `djangoforge` — `django-forge` was already
-taken by an unrelated package — but the Python import stays `django_forge`
-either way: `from django_forge.core.resource import Resource`.)
-
 Installing from a local checkout instead (for contributing to Forge itself):
 
 ```bash
