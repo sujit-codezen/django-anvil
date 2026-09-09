@@ -15,7 +15,7 @@ audit polish. See `demo/` for a working example (four resources —
 ## Install into a project
 
 ```bash
-pip install djangoforge
+pip install dj-forge
 ```
 
 Installing from a local checkout instead (for contributing to Forge itself):

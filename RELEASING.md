@@ -1,4 +1,4 @@
-# Releasing djangoforge to PyPI
+# Releasing dj-forge to PyPI
 
 Publishing uses PyPI's **Trusted Publishing** (OIDC) via
 `.github/workflows/publish.yml` — no API token is ever created, stored,
@@ -15,14 +15,14 @@ the PyPI project.
 
    | Field | Value |
    |---|---|
-   | PyPI Project Name | `djangoforge` |
+   | PyPI Project Name | `dj-forge` |
    | Owner | `sujit-codezen` |
    | Repository name | `django-forge` |
    | Workflow name | `publish.yml` |
    | Environment name | `pypi` |
 
 4. Click **Add**. PyPI now trusts this exact GitHub Actions workflow to
-   publish `djangoforge` — the project doesn't need to exist on PyPI yet
+   publish `dj-forge` — the project doesn't need to exist on PyPI yet
    for this step ("pending publisher").
 
 That's the only step that needs a human at a keyboard with a PyPI
@@ -43,5 +43,5 @@ Watch it run under the repo's **Actions** tab.
 ## Verifying a release
 
 ```bash
-pip index versions djangoforge   # or just check https://pypi.org/project/djangoforge/
+pip index versions dj-forge   # or just check https://pypi.org/project/dj-forge/
 ```
