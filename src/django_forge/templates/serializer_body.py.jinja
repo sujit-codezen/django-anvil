@@ -1,0 +1,7 @@
+class {{ model_name }}Serializer({{ base_classes }}):
+    class Meta:
+        model = {{ model_name }}
+        fields = {{ fields }}
+        {% if read_only_fields %}
+        read_only_fields = {{ read_only_fields }}
+        {% endif %}

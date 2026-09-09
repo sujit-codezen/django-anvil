@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Audit &amp; doctor — Django Forge</title>
+<link rel="stylesheet" href="assets/style.css" />
+</head>
+<body>
+
+<div class="topbar">
+  <button class="menu-toggle" aria-label="Toggle menu">☰</button>
+  <a href="index.html" class="brand">django-forge <span class="version-pill">v0.1</span></a>
+  <div class="search-trigger"><span>🔍</span><span>Search docs...</span><kbd>⌘K</kbd></div>
+  <div class="right-links"><a class="gh-link" href="https://github.com/sujit-codezen/django-forge" target="_blank" rel="noopener"><span>GitHub</span></a></div>
+</div>
+
+<div class="layout">
+  <aside class="sidebar">
+    <div class="group-label">Introduction</div>
+    <nav>
+      <a href="index.html">Overview</a>
+      <a href="getting-started.html">Getting started</a>
+    </nav>
+    <div class="group-label">Core concepts</div>
+    <nav>
+      <a href="resources.html">The Resource class</a>
+      <a href="rbac.html">RBAC</a>
+      <a href="tenancy.html">Multi-tenancy</a>
+      <a href="ai-engine.html">AI engine</a>
+      <a href="audit-and-doctor.html" class="active">Audit &amp; doctor</a>
+    </nav>
+    <div class="group-label">Guides</div>
+    <nav>
+      <a href="demo.html">Demo project</a>
+    </nav>
+  </aside>
+
+  <main>
+    <div class="eyebrow">Core concepts</div>
+    <h1>Audit history &amp; forge doctor</h1>
+
+    <h2 id="audit">Audit history</h2>
+    <p>Wraps <a class="inline-link" href="https://github.com/jazzband/django-simple-history" target="_blank" rel="noopener"><code>django-simple-history</code></a>
+    rather than reinventing change tracking. Set <code>audited = True</code> on a Resource:</p>
+    <pre><code><span class="tok-kw">class</span> <span class="tok-fn">CouponResource</span>(Resource):
+    model = Coupon
+    ...
+    audited = <span class="tok-kw">True</span></code></pre>
+    <p>and add the history field to the model <strong>yourself</strong> — Forge never edits model
+    files for you, the same policy as <code>TenantScopedModel</code>:</p>
+    <pre><code><span class="tok-kw">from</span> simple_history.models <span class="tok-kw">import</span> HistoricalRecords
+
+<span class="tok-kw">class</span> <span class="tok-fn">Coupon</span>(TenantScopedModel):
+    ...
+    history = HistoricalRecords()</code></pre>
+    <p>Forge wires up the <em>admin</em> integration: the generated <code>ModelAdmin</code> uses
+    <code>SimpleHistoryAdmin</code> instead of <code>admin.ModelAdmin</code>, giving a full "History"
+    button and change log in the Django admin UI automatically.</p>
+    <p><code>django-simple-history</code> is already installed as part of django-forge — just add
+    <code>"simple_history"</code> to <code>INSTALLED_APPS</code>.</p>
+
+    <div class="callout tip">
+      <div class="icon">💡</div>
+      <p>Verified for real: create a row, change it twice,
+      <code>instance.history.all()</code> shows three entries — <code>+</code> (created),
+      <code>~</code>, <code>~</code> (two updates) — each with its own timestamp.</p>
+    </div>
+
+    <h2 id="doctor">forge doctor</h2>
+    <p>Static checks, no database needed — safe to run in CI before <code>migrate</code>:</p>
+    <pre><code>python manage.py forge doctor</code></pre>
+
+    <table>
+      <tr><th>Check</th><th>Level</th></tr>
+      <tr><td><code>DEBUG=True</code></td><td>Warning</td></tr>
+      <tr><td>Unreplaced default <code>SECRET_KEY</code></td><td>Warning</td></tr>
+      <tr><td><code>ALLOWED_HOSTS</code> empty with <code>DEBUG=False</code></td><td>Error</td></tr>
+      <tr><td>A <code>tenant_scoped</code> Resource whose model isn't really <code>TenantScopedModel</code></td><td>Error</td></tr>
+      <tr><td>A mixin used without the field it needs (<code>SoftDeleteViewSetMixin</code> → <code>is_deleted</code>, <code>OwnerScopedViewSetMixin</code> → <code>owner</code>)</td><td>Error</td></tr>
+      <tr><td>A permission codename that doesn't match any real permission on the model</td><td>Warning</td></tr>
+      <tr><td><code>audited = True</code> but the model has no <code>history</code> field yet</td><td>Warning</td></tr>
+      <tr><td>A field filtered/sorted on a lot with no database index</td><td>Info</td></tr>
+    </table>
+
+    <div class="callout warn">
+      <div class="icon">⚠️</div>
+      <p>The permission-codename check exists specifically because RBAC fails closed: a typo'd
+      codename doesn't raise an error anywhere — it just silently locks <em>everyone</em> out of
+      that action forever, with nothing in the logs to point at the cause. This is the one check
+      most worth running after any change to a Resource's <code>permissions</code>.</p>
+    </div>
+
+    <pre><code>[WARN] security: DEBUG=True -- fine for local development, never deploy with this on.
+[WARN] security: SECRET_KEY is still Django's auto-generated insecure default -- replace it before deploying.
+[INFO] performance: ProductResource (products.Product): 'price' is filtered/sorted on but has no db_index -- consider adding one if the table gets large.
+
+0 error(s), 2 warning(s), 1 suggestion(s)</code></pre>
+
+    <div class="page-nav">
+      <a href="ai-engine.html"><div class="dir">← Back</div><div class="title">AI engine</div></a>
+      <a href="demo.html" class="next"><div class="dir">Next</div><div class="title">Demo project →</div></a>
+    </div>
+  </main>
+
+  <aside class="toc">
+    <div class="toc-label">☰ On this page</div>
+    <a href="#audit">Audit history</a>
+    <a href="#doctor">forge doctor</a>
+  </aside>
+</div>
+
+<div class="search-backdrop">
+  <div class="search-modal">
+    <input type="text" placeholder="Search documentation..." autocomplete="off" />
+    <div class="search-results"></div>
+  </div>
+</div>
+
+<script src="assets/search-index.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>

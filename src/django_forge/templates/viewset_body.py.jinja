@@ -1,0 +1,23 @@
+class {{ model_name }}ViewSet({{ base_classes }}):
+    {% if not tenant_scoped %}
+    queryset = {{ model_name }}.objects.all()
+    {% endif %}
+    serializer_class = {{ model_name }}Serializer
+    {% if tenant_scoped %}
+    # No `queryset` attribute: TenantScopedViewSetMixin.get_queryset() calls
+    # {{ model_name }}.objects.all() fresh per request instead -- see its docstring.
+    {% endif %}
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    {% if filterset_fields %}
+    filterset_fields = {{ filterset_fields }}
+    {% endif %}
+    {% if search_fields %}
+    search_fields = {{ search_fields }}
+    {% endif %}
+    {% if ordering_fields %}
+    ordering_fields = {{ ordering_fields }}
+    {% endif %}
+    {% if permission_map %}
+    permission_classes = [ResourcePermission]
+    permission_map = {{ permission_map_literal }}
+    {% endif %}

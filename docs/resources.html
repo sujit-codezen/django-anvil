@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>The Resource class — Django Forge</title>
+<link rel="stylesheet" href="assets/style.css" />
+</head>
+<body>
+
+<div class="topbar">
+  <button class="menu-toggle" aria-label="Toggle menu">☰</button>
+  <a href="index.html" class="brand">django-forge <span class="version-pill">v0.1</span></a>
+  <div class="search-trigger"><span>🔍</span><span>Search docs...</span><kbd>⌘K</kbd></div>
+  <div class="right-links"><a class="gh-link" href="https://github.com/sujit-codezen/django-forge" target="_blank" rel="noopener"><span>GitHub</span></a></div>
+</div>
+
+<div class="layout">
+  <aside class="sidebar">
+    <div class="group-label">Introduction</div>
+    <nav>
+      <a href="index.html">Overview</a>
+      <a href="getting-started.html">Getting started</a>
+    </nav>
+    <div class="group-label">Core concepts</div>
+    <nav>
+      <a href="resources.html" class="active">The Resource class</a>
+      <a href="rbac.html">RBAC</a>
+      <a href="tenancy.html">Multi-tenancy</a>
+      <a href="ai-engine.html">AI engine</a>
+      <a href="audit-and-doctor.html">Audit &amp; doctor</a>
+    </nav>
+    <div class="group-label">Guides</div>
+    <nav>
+      <a href="demo.html">Demo project</a>
+    </nav>
+  </aside>
+
+  <main>
+    <div class="eyebrow">Core concepts</div>
+    <h1>The Resource class</h1>
+    <p>A <code>Resource</code> is the single declarative description of everything Forge generates
+    for a model. Define it once in <code>&lt;app&gt;/resources.py</code>; it registers itself
+    automatically (the same way Django's own <code>admin.py</code> autodiscovery works) —
+    no manual registration call needed.</p>
+
+    <pre><code><span class="tok-kw">from</span> django_forge.core.resource <span class="tok-kw">import</span> Resource
+<span class="tok-kw">from</span> django_forge.mixins <span class="tok-kw">import</span> SoftDeleteViewSetMixin, TimestampedSerializerMixin
+<span class="tok-kw">from</span> .models <span class="tok-kw">import</span> Product
+
+<span class="tok-kw">class</span> <span class="tok-fn">ProductResource</span>(Resource):
+    model = Product
+    fields = [<span class="tok-str">"id"</span>, <span class="tok-str">"name"</span>, <span class="tok-str">"price"</span>, <span class="tok-str">"stock"</span>, <span class="tok-str">"is_active"</span>, <span class="tok-str">"created_at"</span>]
+    read_only_fields = [<span class="tok-str">"id"</span>, <span class="tok-str">"created_at"</span>]
+    searchable = [<span class="tok-str">"name"</span>]
+    filters = [<span class="tok-str">"is_active"</span>]
+    sortable = [<span class="tok-str">"price"</span>, <span class="tok-str">"created_at"</span>]
+    mixins = [SoftDeleteViewSetMixin, TimestampedSerializerMixin]
+
+    <span class="tok-com"># optional -- see their own pages</span>
+    permissions = {}
+    tenant_scoped = <span class="tok-kw">False</span>
+    audited = <span class="tok-kw">False</span></code></pre>
+
+    <h2 id="fields">Field declarations</h2>
+    <table>
+      <tr><th>Attribute</th><th>Controls</th></tr>
+      <tr><td><code>fields</code></td><td>Every field exposed on the serializer (readable + writable, unless also listed in <code>read_only_fields</code>)</td></tr>
+      <tr><td><code>read_only_fields</code></td><td>Visible in responses, rejected in request bodies</td></tr>
+      <tr><td><code>searchable</code></td><td>Wired into DRF's <code>SearchFilter</code> (<code>?search=</code>)</td></tr>
+      <tr><td><code>filters</code></td><td>Wired into <code>django-filter</code>'s <code>DjangoFilterBackend</code> (<code>?field=value</code>)</td></tr>
+      <tr><td><code>sortable</code></td><td>Wired into DRF's <code>OrderingFilter</code> (<code>?ordering=-field</code>)</td></tr>
+    </table>
+    <p>These wrap <code>django-filter</code> and DRF's own filter backends directly — Forge doesn't
+    reimplement filtering, it just wires the declaration through.</p>
+
+    <h2 id="generated-files">What gets generated</h2>
+    <p>One <code>forge resource Product</code> call produces:</p>
+    <table>
+      <tr><th>File</th><th>Content</th></tr>
+      <tr><td><code>api/serializers.py</code></td><td><code>ProductSerializer(ModelSerializer)</code></td></tr>
+      <tr><td><code>api/views.py</code></td><td><code>ProductViewSet(ModelViewSet)</code> — full CRUD, filters wired</td></tr>
+      <tr><td><code>api/urls.py</code></td><td>Router registration for the viewset</td></tr>
+      <tr><td><code>admin.py</code></td><td><code>ProductAdmin</code> registration, merged into the file if it already has content</td></tr>
+      <tr><td><code>tests/test_product_api.py</code></td><td>List/create/retrieve/delete tests against a real running API, using the DRF test client</td></tr>
+    </table>
+    <p>Every generated file is normal, readable Django/DRF code — no runtime magic, no base
+    classes you can't read the source of. Edit it by hand afterward like anything else in your
+    project; that's the point.</p>
+
+    <h2 id="mixins">Mixins</h2>
+    <p><code>django_forge.mixins</code> ships real, reusable behavior — not codegen templates. A
+    Resource opts in by listing them in <code>mixins</code>; the generator wires the matching one
+    into the serializer or viewset base classes based on its name
+    (<code>...SerializerMixin</code> vs <code>...ViewSetMixin</code>).</p>
+
+    <h3 id="soft-delete">SoftDeleteViewSetMixin</h3>
+    <p>Requires an <code>is_deleted</code> boolean field. Excludes soft-deleted rows from every
+    query and turns <code>DELETE</code> into setting the flag instead of removing the row.</p>
+    <pre><code><span class="tok-kw">class</span> <span class="tok-fn">SoftDeleteViewSetMixin</span>:
+    <span class="tok-kw">def</span> <span class="tok-fn">get_queryset</span>(self):
+        <span class="tok-kw">return</span> super().get_queryset().filter(is_deleted=<span class="tok-kw">False</span>)
+
+    <span class="tok-kw">def</span> <span class="tok-fn">perform_destroy</span>(self, instance):
+        instance.is_deleted = <span class="tok-kw">True</span>
+        instance.save(update_fields=[<span class="tok-str">"is_deleted"</span>])</code></pre>
+
+    <h3 id="owner-scoped">OwnerScopedViewSetMixin</h3>
+    <p>Requires an <code>owner</code> FK to the user model. Scopes <em>every</em> action —
+    including list/retrieve — to <code>request.user</code>'s own rows, and auto-assigns the owner
+    on create. Fails closed (empty, not a crash) for anonymous requests.</p>
+    <div class="callout warn">
+      <div class="icon">⚠️</div>
+      <p>This means "your own stuff only", for every action — like a private notes or wishlist
+      feature. Don't pair it with <code>permissions = {"view": "public"}"</code> expecting a
+      public-reads/private-writes feed (e.g. product reviews visible to everyone); that needs a
+      different <code>get_queryset</code> than this mixin provides out of the box.</p>
+    </div>
+
+    <h3 id="timestamped">TimestampedSerializerMixin</h3>
+    <p>Marks <code>created_at</code>/<code>updated_at</code> read-only on the serializer if
+    present, so callers can't set timestamps through the API even if you forgot to list them in
+    <code>read_only_fields</code>.</p>
+
+    <p>Write your own the same way: a plain class following the naming convention, mixed into the
+    generated <code>ModelViewSet</code>/<code>ModelSerializer</code>. Multiple mixins compose via
+    normal Python MRO — put the one that should run last-in-chain closest to the base class.</p>
+
+    <h2 id="multi-resource">Multiple Resources in one app</h2>
+    <p><code>serializers.py</code>, <code>views.py</code>, <code>urls.py</code>, and
+    <code>admin.py</code> are shared, per-app files. Generating a second Resource
+    (<code>Coupon</code>, say) into an app that already has <code>Product</code> adds its classes
+    alongside — merges the router registration, folds new imports into existing
+    <code>from ..models import ...</code> lines (sorted, deduplicated), and never disturbs
+    <code>Product</code>'s own generated code.</p>
+    <pre><code>python manage.py forge resource Product
+python manage.py forge resource Coupon   <span class="tok-com"># adds CouponSerializer/ViewSet alongside Product's</span></code></pre>
+
+    <div class="page-nav">
+      <a href="getting-started.html"><div class="dir">← Back</div><div class="title">Getting started</div></a>
+      <a href="rbac.html" class="next"><div class="dir">Next</div><div class="title">RBAC →</div></a>
+    </div>
+  </main>
+
+  <aside class="toc">
+    <div class="toc-label">☰ On this page</div>
+    <a href="#fields">Field declarations</a>
+    <a href="#generated-files">What gets generated</a>
+    <a href="#mixins">Mixins</a>
+    <a href="#multi-resource">Multiple Resources in one app</a>
+  </aside>
+</div>
+
+<div class="search-backdrop">
+  <div class="search-modal">
+    <input type="text" placeholder="Search documentation..." autocomplete="off" />
+    <div class="search-results"></div>
+  </div>
+</div>
+
+<script src="assets/search-index.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>

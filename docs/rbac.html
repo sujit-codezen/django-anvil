@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>RBAC — Django Forge</title>
+<link rel="stylesheet" href="assets/style.css" />
+</head>
+<body>
+
+<div class="topbar">
+  <button class="menu-toggle" aria-label="Toggle menu">☰</button>
+  <a href="index.html" class="brand">django-forge <span class="version-pill">v0.1</span></a>
+  <div class="search-trigger"><span>🔍</span><span>Search docs...</span><kbd>⌘K</kbd></div>
+  <div class="right-links"><a class="gh-link" href="https://github.com/sujit-codezen/django-forge" target="_blank" rel="noopener"><span>GitHub</span></a></div>
+</div>
+
+<div class="layout">
+  <aside class="sidebar">
+    <div class="group-label">Introduction</div>
+    <nav>
+      <a href="index.html">Overview</a>
+      <a href="getting-started.html">Getting started</a>
+    </nav>
+    <div class="group-label">Core concepts</div>
+    <nav>
+      <a href="resources.html">The Resource class</a>
+      <a href="rbac.html" class="active">RBAC</a>
+      <a href="tenancy.html">Multi-tenancy</a>
+      <a href="ai-engine.html">AI engine</a>
+      <a href="audit-and-doctor.html">Audit &amp; doctor</a>
+    </nav>
+    <div class="group-label">Guides</div>
+    <nav>
+      <a href="demo.html">Demo project</a>
+    </nav>
+  </aside>
+
+  <main>
+    <div class="eyebrow">Core concepts</div>
+    <h1>RBAC</h1>
+    <p>Role-based access control, built on top of Django's own <code>Group</code>/<code>Permission</code>
+    system rather than a new one — no new tables, no new concepts a Django developer doesn't
+    already know. It shows up in the normal Django admin "Groups" machinery and works with
+    <code>user.has_perm(...)</code> like anything else.</p>
+
+    <div class="callout warn">
+      <div class="icon">⚠️</div>
+      <p><strong>Fails closed.</strong> An action with no rule declared is denied to everyone —
+      never "allowed to everyone." Declaring <code>permissions</code> at all means you're opting
+      into an allow-list, not a deny-list.</p>
+    </div>
+
+    <h2 id="permissions-map">The permissions map</h2>
+    <p><code>permissions</code> maps an action to a rule. DRF's six actions collapse into four keys:</p>
+    <table>
+      <tr><th>Key</th><th>DRF actions</th></tr>
+      <tr><td><code>view</code></td><td><code>list</code>, <code>retrieve</code></td></tr>
+      <tr><td><code>create</code></td><td><code>create</code></td></tr>
+      <tr><td><code>update</code></td><td><code>update</code>, <code>partial_update</code></td></tr>
+      <tr><td><code>delete</code></td><td><code>destroy</code></td></tr>
+    </table>
+
+    <p>Each rule is one of three kinds:</p>
+    <table>
+      <tr><th>Rule</th><th>Meaning</th></tr>
+      <tr><td><code>"public"</code></td><td>Always allowed, no login needed</td></tr>
+      <tr><td><code>"authenticated"</code></td><td>Allowed if logged in — no specific permission required</td></tr>
+      <tr><td><code>"app_label.codename"</code></td><td>Allowed only if <code>request.user.has_perm(...)</code> is true</td></tr>
+    </table>
+
+    <pre><code><span class="tok-kw">class</span> <span class="tok-fn">ProductResource</span>(Resource):
+    ...
+    permissions = {
+        <span class="tok-str">"view"</span>: <span class="tok-str">"public"</span>,
+        <span class="tok-str">"create"</span>: <span class="tok-str">"products.add_product"</span>,
+        <span class="tok-str">"update"</span>: <span class="tok-str">"products.change_product"</span>,
+        <span class="tok-str">"delete"</span>: <span class="tok-str">"products.delete_product"</span>,
+    }</code></pre>
+
+    <p><code>"products.add_product"</code> needs no setup — Django auto-creates four permissions
+    per model the moment it's migrated: <code>add_&lt;model&gt;</code>, <code>change_&lt;model&gt;</code>,
+    <code>delete_&lt;model&gt;</code>, <code>view_&lt;model&gt;</code>, namespaced under the app label.</p>
+
+    <h2 id="roles">Roles = Django Groups</h2>
+    <p><code>django_forge.rbac.models.Role</code> is a proxy model for Django's own
+    <code>Group</code> — <code>Role.objects.create(...)</code> writes to the same
+    <code>auth_group</code> table Django admin already manages. The only actually-custom piece is
+    <code>.grant()</code>, a convenience wrapper around looking up real <code>Permission</code>
+    objects by codename:</p>
+
+    <pre><code><span class="tok-kw">from</span> django_forge.rbac.models <span class="tok-kw">import</span> Role
+
+manager_role = Role.objects.create(name=<span class="tok-str">"Manager"</span>)
+manager_role.grant(<span class="tok-str">"products.add_product"</span>, <span class="tok-str">"products.change_product"</span>)
+alice.groups.add(manager_role)  <span class="tok-com"># plain Django, User.groups is unmodified</span></code></pre>
+
+    <p>You could delete <code>django_forge.rbac</code> entirely and get the identical result with
+    <code>Group</code>/<code>Permission</code> directly — Forge's version is just shorter to type.</p>
+
+    <h2 id="fail-closed">Fails closed by default</h2>
+    <pre><code><span class="tok-kw">class</span> <span class="tok-fn">ResourcePermission</span>(BasePermission):
+    <span class="tok-kw">def</span> <span class="tok-fn">has_permission</span>(self, request, view):
+        rule = view.permission_map.get(ACTION_KEYS.get(view.action))
+
+        <span class="tok-kw">if</span> rule == <span class="tok-str">"public"</span>:
+            <span class="tok-kw">return</span> <span class="tok-kw">True</span>
+        <span class="tok-kw">if</span> rule == <span class="tok-str">"authenticated"</span>:
+            <span class="tok-kw">return</span> request.user.is_authenticated
+        <span class="tok-kw">if</span> rule:
+            <span class="tok-kw">return</span> request.user.is_authenticated <span class="tok-kw">and</span> request.user.has_perm(rule)
+
+        <span class="tok-com"># No rule declared for this action: fail closed, not open.</span>
+        <span class="tok-kw">return</span> <span class="tok-kw">False</span></code></pre>
+    <p>A resource that only declares <code>view</code> and <code>create</code> leaves
+    <code>update</code>/<code>delete</code> unreachable by anyone — on purpose, so a forgotten key
+    can't accidentally become an open door.</p>
+
+    <h2 id="generated-tests">Auto-generated permission tests</h2>
+    <p>Any protected action gets a <code>test_&lt;model&gt;_permissions.py</code> file for free,
+    using real HTTP requests against the generated API — not mocks:</p>
+    <pre><code><span class="tok-kw">def</span> <span class="tok-fn">test_anonymous_denied_on_create</span>(self, api_client):
+    response = api_client.post(reverse(<span class="tok-str">"products-list"</span>), payload, format=<span class="tok-str">"json"</span>)
+    <span class="tok-kw">assert</span> response.status_code <span class="tok-kw">in</span> (status.HTTP_401_UNAUTHORIZED, status.HTTP_403_FORBIDDEN)
+
+<span class="tok-kw">def</span> <span class="tok-fn">test_granted_user_can_create</span>(self, api_client):
+    role = Role.objects.create(name=<span class="tok-str">"Product create role"</span>)
+    role.grant(<span class="tok-str">"products.add_product"</span>)
+    user.groups.add(role)
+    api_client.force_authenticate(user)
+    response = api_client.post(reverse(<span class="tok-str">"products-list"</span>), payload, format=<span class="tok-str">"json"</span>)
+    <span class="tok-kw">assert</span> response.status_code <span class="tok-kw">not</span> <span class="tok-kw">in</span> (status.HTTP_401_UNAUTHORIZED, status.HTTP_403_FORBIDDEN)</code></pre>
+
+    <div class="callout info">
+      <div class="icon">ℹ️</div>
+      <p><code>forge doctor</code> flags a permission codename that doesn't match any real
+      permission on the model — since RBAC fails closed, a typo there silently locks
+      <em>everyone</em> out of that action with no error to point at the cause. See
+      <a class="inline-link" href="audit-and-doctor.html#doctor">Audit &amp; doctor</a>.</p>
+    </div>
+
+    <div class="page-nav">
+      <a href="resources.html"><div class="dir">← Back</div><div class="title">The Resource class</div></a>
+      <a href="tenancy.html" class="next"><div class="dir">Next</div><div class="title">Multi-tenancy →</div></a>
+    </div>
+  </main>
+
+  <aside class="toc">
+    <div class="toc-label">☰ On this page</div>
+    <a href="#permissions-map">The permissions map</a>
+    <a href="#roles">Roles = Django Groups</a>
+    <a href="#fail-closed">Fails closed by default</a>
+    <a href="#generated-tests">Auto-generated permission tests</a>
+  </aside>
+</div>
+
+<div class="search-backdrop">
+  <div class="search-modal">
+    <input type="text" placeholder="Search documentation..." autocomplete="off" />
+    <div class="search-results"></div>
+  </div>
+</div>
+
+<script src="assets/search-index.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>

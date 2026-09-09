@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Getting started — Django Forge</title>
+<link rel="stylesheet" href="assets/style.css" />
+</head>
+<body>
+
+<div class="topbar">
+  <button class="menu-toggle" aria-label="Toggle menu">☰</button>
+  <a href="index.html" class="brand">django-forge <span class="version-pill">v0.1</span></a>
+  <div class="search-trigger"><span>🔍</span><span>Search docs...</span><kbd>⌘K</kbd></div>
+  <div class="right-links"><a class="gh-link" href="https://github.com/sujit-codezen/django-forge" target="_blank" rel="noopener"><span>GitHub</span></a></div>
+</div>
+
+<div class="layout">
+  <aside class="sidebar">
+    <div class="group-label">Introduction</div>
+    <nav>
+      <a href="index.html">Overview</a>
+      <a href="getting-started.html" class="active">Getting started</a>
+    </nav>
+    <div class="group-label">Core concepts</div>
+    <nav>
+      <a href="resources.html">The Resource class</a>
+      <a href="rbac.html">RBAC</a>
+      <a href="tenancy.html">Multi-tenancy</a>
+      <a href="ai-engine.html">AI engine</a>
+      <a href="audit-and-doctor.html">Audit &amp; doctor</a>
+    </nav>
+    <div class="group-label">Guides</div>
+    <nav>
+      <a href="demo.html">Demo project</a>
+    </nav>
+  </aside>
+
+  <main>
+    <div class="eyebrow">Introduction</div>
+    <h1>Getting started</h1>
+    <p>Forge installs into an existing Django + REST Framework project — it isn't a replacement
+    for either. If you don't have a project yet, make one first:</p>
+
+    <pre><code><span class="tok-com"># new project, if you need one</span>
+python3 -m venv .venv &amp;&amp; <span class="tok-kw">source</span> .venv/bin/activate
+pip install django djangorestframework django-filter
+django-admin startproject config .
+python manage.py startapp products</code></pre>
+
+    <h2 id="install">Install into a project</h2>
+    <pre><code>pip install dj-forge</code></pre>
+    <p>(PyPI distribution name is <code>dj-forge</code> — <code>django-forge</code> was already
+    taken by an unrelated package — but the Python import stays <code>django_forge</code> either
+    way.)</p>
+
+    <p>Register it in <code>settings.py</code>:</p>
+    <pre><code><span class="tok-fn">INSTALLED_APPS</span> = [
+    ...,
+    <span class="tok-str">"rest_framework"</span>,
+    <span class="tok-str">"django_filters"</span>,
+    <span class="tok-str">"django_forge"</span>,
+    <span class="tok-str">"products"</span>,
+]</code></pre>
+
+    <div class="callout tip">
+      <div class="icon">💡</div>
+      <p>RBAC and multi-tenancy are opt-in apps of their own
+      (<code>django_forge.rbac</code>, <code>django_forge.tenancy</code>) — only add them once you
+      actually use <code>permissions</code> or <code>tenant_scoped</code>. See their own pages.</p>
+    </div>
+
+    <h2 id="define-resource">Define a model and a Resource</h2>
+    <pre><code><span class="tok-com"># products/models.py</span>
+<span class="tok-kw">class</span> <span class="tok-fn">Product</span>(models.Model):
+    name = models.CharField(max_length=200)
+    price = models.DecimalField(max_digits=10, decimal_places=2)
+    stock = models.IntegerField(default=0)</code></pre>
+
+    <pre><code><span class="tok-com"># products/resources.py</span>
+<span class="tok-kw">from</span> django_forge.core.resource <span class="tok-kw">import</span> Resource
+<span class="tok-kw">from</span> .models <span class="tok-kw">import</span> Product
+
+<span class="tok-kw">class</span> <span class="tok-fn">ProductResource</span>(Resource):
+    model = Product
+    fields = [<span class="tok-str">"id"</span>, <span class="tok-str">"name"</span>, <span class="tok-str">"price"</span>, <span class="tok-str">"stock"</span>]
+    read_only_fields = [<span class="tok-str">"id"</span>]
+    searchable = [<span class="tok-str">"name"</span>]
+    filters = []
+    sortable = [<span class="tok-str">"price"</span>]</code></pre>
+
+    <h2 id="generate">Generate everything</h2>
+    <pre><code>python manage.py migrate
+python manage.py forge resource Product</code></pre>
+    <p>That writes/merges into <code>products/api/serializers.py</code>, <code>products/api/views.py</code>,
+    <code>products/api/urls.py</code>, registers <code>ProductAdmin</code>, and writes
+    <code>products/tests/test_product_api.py</code>. If the app has more than one Resource, a second
+    <code>forge resource Coupon</code> adds its classes alongside <code>Product</code>'s in the same
+    files — the way a person would by hand, not by overwriting them.</p>
+
+    <h2 id="wire-urls">Wire the URLs</h2>
+    <p>One-time, the first time you generate a Resource in a given app:</p>
+    <pre><code><span class="tok-com"># config/urls.py</span>
+path(<span class="tok-str">"api/"</span>, include(<span class="tok-str">"products.api.urls"</span>)),</code></pre>
+    <p>Run it: <code>python manage.py runserver</code>, then <code>/api/products/</code> is a full CRUD API
+    with search, filtering, and ordering already wired from <code>searchable</code>/<code>filters</code>/<code>sortable</code>.</p>
+
+    <h2 id="force">Regenerating with <code>--force</code></h2>
+    <p>By default, re-running <code>forge resource</code> never touches a file that already has
+    content — safe to run repeatedly, and safe against clobbering hand-edits. Once you change a
+    Resource's declaration (add a field, turn on <code>tenant_scoped</code>, add <code>permissions</code>),
+    regenerate that Resource's block specifically:</p>
+    <pre><code>python manage.py forge resource Product --force</code></pre>
+    <p><code>--force</code> only replaces <em>that Resource's</em> block in each shared file — it never
+    touches another Resource's code in the same file, and it never touches <code>admin.py</code>'s
+    registration (which routinely holds hand-written admin customizations) — see
+    <a class="inline-link" href="resources.html#multi-resource">multiple Resources in one app</a>.</p>
+
+    <div class="callout info">
+      <div class="icon">ℹ️</div>
+      <p>See everything currently registered, or check the project for common mistakes, any time:</p>
+      <p><code>python manage.py forge list</code> &nbsp;·&nbsp; <code>python manage.py forge doctor</code></p>
+    </div>
+
+    <div class="page-nav">
+      <a href="index.html"><div class="dir">← Back</div><div class="title">Overview</div></a>
+      <a href="resources.html" class="next"><div class="dir">Next</div><div class="title">The Resource class →</div></a>
+    </div>
+  </main>
+
+  <aside class="toc">
+    <div class="toc-label">☰ On this page</div>
+    <a href="#install">Install into a project</a>
+    <a href="#define-resource">Define a model and a Resource</a>
+    <a href="#generate">Generate everything</a>
+    <a href="#wire-urls">Wire the URLs</a>
+    <a href="#force">Regenerating with --force</a>
+  </aside>
+</div>
+
+<div class="search-backdrop">
+  <div class="search-modal">
+    <input type="text" placeholder="Search documentation..." autocomplete="off" />
+    <div class="search-results"></div>
+  </div>
+</div>
+
+<script src="assets/search-index.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>

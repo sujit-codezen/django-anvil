@@ -1,0 +1,69 @@
+import pytest
+{% if has_permissions or tenant_scoped or owner_scoped %}
+from django.contrib.auth import get_user_model
+{% endif %}
+from django.urls import reverse
+from rest_framework import status
+from rest_framework.test import APIClient
+{% if tenant_scoped %}
+
+from django_forge.tenancy.models import Organization, OrganizationMembership
+{% endif %}
+
+from ..models import {{ model_name }}
+
+{% if tenant_scoped %}
+
+@pytest.fixture
+def test_organization(db):
+    return Organization.objects.create(name="Test Org", slug="test-org")
+
+{% endif %}
+{% if has_permissions or tenant_scoped or owner_scoped %}
+
+@pytest.fixture
+def test_actor({% if tenant_scoped %}test_organization{% endif %}):
+    # This resource has RBAC/tenancy/ownership rules (see the other
+    # generated test files for those); this file only checks that the
+    # CRUD flow itself works, so this one shared user is a superuser
+    # (bypasses RBAC) who also owns/belongs-to anything created directly
+    # below, rather than testing any of those rules itself.
+    user = get_user_model().objects.create_superuser(
+        username="crud-test-actor", email="crud-test-actor@example.com", password="pass1234"
+    )
+    {% if tenant_scoped %}
+    OrganizationMembership.objects.create(user=user, organization=test_organization)
+    {% endif %}
+    return user
+
+{% endif %}
+
+@pytest.fixture
+def api_client({% if has_permissions or tenant_scoped or owner_scoped %}test_actor{% endif %}):
+    client = APIClient()
+    {% if has_permissions or tenant_scoped or owner_scoped %}
+    client.force_authenticate(test_actor)
+    {% endif %}
+    return client
+
+
+@pytest.mark.django_db
+class Test{{ model_name }}API:
+    def test_list(self, api_client):
+        response = api_client.get(reverse("{{ url_prefix }}-list"))
+        assert response.status_code == status.HTTP_200_OK
+
+    def test_create_and_retrieve(self, api_client):
+        payload = {{ sample_payload }}
+        create_response = api_client.post(reverse("{{ url_prefix }}-list"), payload, format="json")
+        assert create_response.status_code == status.HTTP_201_CREATED
+
+        object_id = create_response.data["id"]
+        detail_response = api_client.get(reverse("{{ url_prefix }}-detail", args=[object_id]))
+        assert detail_response.status_code == status.HTTP_200_OK
+
+    def test_delete(self, api_client{% if tenant_scoped %}, test_organization{% endif %}{% if owner_scoped %}, test_actor{% endif %}):
+        payload = {{ sample_payload }}
+        instance = {{ model_name }}.objects.create({{ direct_create_kwargs }}{% if owner_scoped %}owner=test_actor, {% endif %}**payload)
+        response = api_client.delete(reverse("{{ url_prefix }}-detail", args=[instance.id]))
+        assert response.status_code == status.HTTP_204_NO_CONTENT

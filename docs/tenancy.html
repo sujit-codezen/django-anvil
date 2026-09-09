@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Multi-tenancy — Django Forge</title>
+<link rel="stylesheet" href="assets/style.css" />
+</head>
+<body>
+
+<div class="topbar">
+  <button class="menu-toggle" aria-label="Toggle menu">☰</button>
+  <a href="index.html" class="brand">django-forge <span class="version-pill">v0.1</span></a>
+  <div class="search-trigger"><span>🔍</span><span>Search docs...</span><kbd>⌘K</kbd></div>
+  <div class="right-links"><a class="gh-link" href="https://github.com/sujit-codezen/django-forge" target="_blank" rel="noopener"><span>GitHub</span></a></div>
+</div>
+
+<div class="layout">
+  <aside class="sidebar">
+    <div class="group-label">Introduction</div>
+    <nav>
+      <a href="index.html">Overview</a>
+      <a href="getting-started.html">Getting started</a>
+    </nav>
+    <div class="group-label">Core concepts</div>
+    <nav>
+      <a href="resources.html">The Resource class</a>
+      <a href="rbac.html">RBAC</a>
+      <a href="tenancy.html" class="active">Multi-tenancy</a>
+      <a href="ai-engine.html">AI engine</a>
+      <a href="audit-and-doctor.html">Audit &amp; doctor</a>
+    </nav>
+    <div class="group-label">Guides</div>
+    <nav>
+      <a href="demo.html">Demo project</a>
+    </nav>
+  </aside>
+
+  <main>
+    <div class="eyebrow">Core concepts</div>
+    <h1>Multi-tenancy</h1>
+    <p>Shared-schema: every tenant's rows live in the same tables, tagged with an
+    <code>organization_id</code> and auto-scoped — one database, no per-tenant schemas to
+    provision or migrate separately.</p>
+
+    <div class="callout warn">
+      <div class="icon">⚠️</div>
+      <p><strong>Fails closed.</strong> <code>Model.objects</code> (the default manager) returns
+      nothing if there's no organization in context for the current request — never "every
+      organization's rows." This applies even to a plain <code>Model.objects.all()</code>
+      anywhere in the codebase: a developer who forgets to scope a query by hand still can't leak
+      another tenant's data through it.</p>
+    </div>
+
+    <h2 id="tenant-scoped-model">TenantScopedModel</h2>
+    <p>Opt in per model by inheriting it, and set <code>tenant_scoped = True</code> on the Resource:</p>
+    <pre><code><span class="tok-kw">from</span> django_forge.tenancy.models <span class="tok-kw">import</span> TenantScopedModel
+
+<span class="tok-kw">class</span> <span class="tok-fn">Product</span>(TenantScopedModel):  <span class="tok-com"># adds the `organization` FK</span>
+    name = models.CharField(max_length=200)
+    price = models.DecimalField(max_digits=10, decimal_places=2)</code></pre>
+    <pre><code><span class="tok-kw">class</span> <span class="tok-fn">ProductResource</span>(Resource):
+    model = Product
+    ...
+    tenant_scoped = <span class="tok-kw">True</span></code></pre>
+
+    <p>Every <code>TenantScopedModel</code> gets <strong>two</strong> managers:</p>
+    <table>
+      <tr><th>Manager</th><th>Behavior</th></tr>
+      <tr><td><code>Model.objects</code></td><td>Default. Filtered to the current organization; empty if none in context.</td></tr>
+      <tr><td><code>Model.all_objects</code></td><td>Same queryset, unfiltered — for the deliberate cases (Django admin, scripts) that need every organization's rows.</td></tr>
+    </table>
+
+    <div class="callout danger">
+      <div class="icon">🚫</div>
+      <p><strong>Common footgun:</strong> a management command or one-off script runs with no
+      request/organization context, so <code>Model.objects.get_or_create(...)</code> there always
+      "sees" zero existing rows — silently duplicating data, or worse, raising an
+      <code>IntegrityError</code> against a unique field on the second run. Use
+      <code>Model.all_objects</code> in scripts, migrations, and shell sessions.</p>
+    </div>
+
+    <h2 id="resolution">How the current organization is resolved</h2>
+    <p>Resolved from an <code>X-Org-Id</code> header (only honored if the user is really a
+    member) or automatically if the user belongs to exactly one organization — resolved
+    <strong>inside the DRF ViewSet itself</strong> (<code>TenantScopedViewSetMixin.initial()</code>),
+    not via Django middleware.</p>
+    <div class="callout info">
+      <div class="icon">ℹ️</div>
+      <p>Why not middleware? DRF's own authentication (tokens, <code>force_authenticate</code> in
+      tests) runs <em>inside</em> the view, after Django's middleware chain has already executed —
+      a plain middleware would still see <code>AnonymousUser</code> at that point. Resolving it in
+      the ViewSet's own <code>initial()</code> (after <code>super().initial()</code> has run DRF's
+      authentication) means this works no matter which auth scheme is in use.
+      <code>CurrentOrganizationMiddleware</code> still exists, for the non-DRF views it does work
+      correctly for (session auth).</p>
+    </div>
+
+    <h2 id="admin">Django admin sees every organization</h2>
+    <p>Generated <code>ModelAdmin</code>s override <code>get_queryset</code> to use
+    <code>all_objects</code> automatically — admin is a global, already-permissioned surface, not
+    something that should silently show only whichever org (if any) the logged-in staff user
+    happens to belong to.</p>
+    <pre><code><span class="tok-kw">class</span> <span class="tok-fn">ProductAdmin</span>(admin.ModelAdmin):
+    ...
+    <span class="tok-kw">def</span> <span class="tok-fn">get_queryset</span>(self, request):
+        <span class="tok-kw">return</span> Product.all_objects.all()</code></pre>
+
+    <h2 id="composition">RBAC + tenancy composition</h2>
+    <p>A role check happens first (in <code>check_permissions</code>), then the tenant-scoped
+    queryset filters what that role is allowed to see. A resource with
+    <code>"view": "public"</code> and <code>tenant_scoped = True</code> means: no login required
+    to <em>try</em>, but you'll only ever see rows for an organization you're actually a member
+    of — public doesn't mean "every tenant's data."</p>
+
+    <div class="page-nav">
+      <a href="rbac.html"><div class="dir">← Back</div><div class="title">RBAC</div></a>
+      <a href="ai-engine.html" class="next"><div class="dir">Next</div><div class="title">AI engine →</div></a>
+    </div>
+  </main>
+
+  <aside class="toc">
+    <div class="toc-label">☰ On this page</div>
+    <a href="#tenant-scoped-model">TenantScopedModel</a>
+    <a href="#resolution">Resolving the current organization</a>
+    <a href="#admin">Django admin sees everything</a>
+    <a href="#composition">RBAC + tenancy composition</a>
+  </aside>
+</div>
+
+<div class="search-backdrop">
+  <div class="search-modal">
+    <input type="text" placeholder="Search documentation..." autocomplete="off" />
+    <div class="search-results"></div>
+  </div>
+</div>
+
+<script src="assets/search-index.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,16 @@
+@admin.register({{ model_name }})
+class {{ model_name }}Admin({{ admin_base_class }}):
+    list_display = {{ list_display }}
+    {% if search_fields %}
+    search_fields = {{ search_fields }}
+    {% endif %}
+    {% if filterset_fields %}
+    list_filter = {{ filterset_fields }}
+    {% endif %}
+    {% if tenant_scoped %}
+
+    def get_queryset(self, request):
+        # Admin is a global surface: show every organization's rows here,
+        # not just whichever one (if any) the logged-in staff user belongs to.
+        return {{ model_name }}.all_objects.all()
+    {% endif %}

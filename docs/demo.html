@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Demo project — Django Forge</title>
+<link rel="stylesheet" href="assets/style.css" />
+</head>
+<body>
+
+<div class="topbar">
+  <button class="menu-toggle" aria-label="Toggle menu">☰</button>
+  <a href="index.html" class="brand">django-forge <span class="version-pill">v0.1</span></a>
+  <div class="search-trigger"><span>🔍</span><span>Search docs...</span><kbd>⌘K</kbd></div>
+  <div class="right-links"><a class="gh-link" href="https://github.com/sujit-codezen/django-forge" target="_blank" rel="noopener"><span>GitHub</span></a></div>
+</div>
+
+<div class="layout">
+  <aside class="sidebar">
+    <div class="group-label">Introduction</div>
+    <nav>
+      <a href="index.html">Overview</a>
+      <a href="getting-started.html">Getting started</a>
+    </nav>
+    <div class="group-label">Core concepts</div>
+    <nav>
+      <a href="resources.html">The Resource class</a>
+      <a href="rbac.html">RBAC</a>
+      <a href="tenancy.html">Multi-tenancy</a>
+      <a href="ai-engine.html">AI engine</a>
+      <a href="audit-and-doctor.html">Audit &amp; doctor</a>
+    </nav>
+    <div class="group-label">Guides</div>
+    <nav>
+      <a href="demo.html" class="active">Demo project</a>
+    </nav>
+  </aside>
+
+  <main>
+    <div class="eyebrow">Guides</div>
+    <h1>Demo project</h1>
+    <p><code>demo/</code> in the repository is a full, runnable Django project proving every
+    feature end to end — not a toy. Four Resources in one app:</p>
+
+    <h2 id="resources">The four demo Resources</h2>
+    <table>
+      <tr><th>Resource</th><th>Demonstrates</th></tr>
+      <tr><td><code>Product</code></td><td>RBAC (mixed <code>public</code>/codename rules), tenancy, <code>SoftDeleteViewSetMixin</code>, <code>TimestampedSerializerMixin</code></td></tr>
+      <tr><td><code>Coupon</code></td><td>RBAC (all codenames, no <code>public</code>), tenancy, audit history</td></tr>
+      <tr><td><code>Review</code></td><td><code>OwnerScopedViewSetMixin</code>, the <code>"authenticated"</code> permission rule, deliberately <em>not</em> tenant-scoped</td></tr>
+      <tr><td><code>Tag</code></td><td>Added live via <code>forge ai --apply</code> during development — proof the AI engine's propose→approve→write loop produces a genuinely working Resource, not just a plausible-looking diff</td></tr>
+    </table>
+
+    <h2 id="run-it">Run it yourself</h2>
+    <pre><code>python3 -m venv .venv &amp;&amp; <span class="tok-kw">source</span> .venv/bin/activate
+pip install -e <span class="tok-str">".[dev]"</span>
+<span class="tok-kw">cd</span> demo
+python manage.py migrate
+python -m pytest products/ -v      <span class="tok-com"># 49 tests</span>
+python manage.py forge doctor</code></pre>
+
+    <h2 id="seed">seed_demo</h2>
+    <p>Populates organizations, roles, users, and sample data — safe to re-run (everything is
+    <code>get_or_create</code>'d):</p>
+    <pre><code>python manage.py seed_demo
+python manage.py runserver</code></pre>
+
+    <h2 id="accounts">Demo accounts</h2>
+    <table>
+      <tr><th>Account</th><th>What it can do</th></tr>
+      <tr><td><code>admin</code></td><td>Superuser — full Django admin access</td></tr>
+      <tr><td><code>alice</code></td><td>Acme Manager — sees only Acme's Products/Coupons/Tags, full CRUD</td></tr>
+      <tr><td><code>bob</code></td><td>Globex Manager — sees only Globex's, full CRUD</td></tr>
+      <tr><td><code>carol</code></td><td>Acme Staff — view-only; create/update/delete all 403</td></tr>
+      <tr><td><code>dave</code></td><td>No organization — sees nothing (tenancy fails closed)</td></tr>
+    </table>
+    <p>Password for all: <code>demo-pass-1234</code>. <code>seed_demo</code> prints this list
+    itself, so you never need to remember it.</p>
+
+    <h3>Try it</h3>
+    <pre><code>curl http://127.0.0.1:8000/api/products/
+<span class="tok-com"># [] -- anonymous, no organization context</span>
+
+curl -u alice:demo-pass-1234 http://127.0.0.1:8000/api/products/
+<span class="tok-com"># Acme's products only</span>
+
+curl -u carol:demo-pass-1234 -X POST http://127.0.0.1:8000/api/products/ \
+  -d <span class="tok-str">'name=Test&amp;price=1&amp;stock=1&amp;is_active=true'</span>
+<span class="tok-com"># 403 -- Staff, view-only</span></code></pre>
+
+    <p>Or open <code>http://127.0.0.1:8000/admin/</code> to browse Roles, Organizations,
+    Products, Coupons (with a "History" button from audit logging), Reviews, and Tags directly.</p>
+
+    <div class="callout tip">
+      <div class="icon">💡</div>
+      <p>Every one of these behaviors was verified against a live running server with real curl
+      requests and a real browser session — not just <code>pytest</code> — while the demo was
+      being built. Several real bugs (a crash on anonymous ownership-scoped requests, a script
+      that fell into its own tenancy footgun, a missing integer field type) were caught exactly
+      this way.</p>
+    </div>
+
+    <div class="page-nav">
+      <a href="audit-and-doctor.html"><div class="dir">← Back</div><div class="title">Audit &amp; doctor</div></a>
+      <a href="index.html" class="next"><div class="dir">Start over</div><div class="title">Overview →</div></a>
+    </div>
+  </main>
+
+  <aside class="toc">
+    <div class="toc-label">☰ On this page</div>
+    <a href="#resources">The four Resources</a>
+    <a href="#run-it">Run it yourself</a>
+    <a href="#seed">seed_demo</a>
+    <a href="#accounts">Demo accounts</a>
+  </aside>
+</div>
+
+<div class="search-backdrop">
+  <div class="search-modal">
+    <input type="text" placeholder="Search documentation..." autocomplete="off" />
+    <div class="search-results"></div>
+  </div>
+</div>
+
+<script src="assets/search-index.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>

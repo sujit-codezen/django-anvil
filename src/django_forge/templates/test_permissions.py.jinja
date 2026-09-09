@@ -1,0 +1,69 @@
+import pytest
+from django.contrib.auth import get_user_model
+from django.urls import reverse
+from rest_framework import status
+from rest_framework.test import APIClient
+
+from django_forge.rbac.models import Role
+{% if tenant_scoped %}
+from django_forge.tenancy.models import Organization, OrganizationMembership
+{% endif %}
+
+from ..models import {{ model_name }}
+
+pytestmark = pytest.mark.django_db
+
+User = get_user_model()
+
+{% if tenant_scoped %}
+
+@pytest.fixture
+def test_organization(db):
+    return Organization.objects.create(name="Test Org", slug="test-org")
+
+{% endif %}
+
+@pytest.fixture
+def api_client():
+    return APIClient()
+
+
+class Test{{ model_name }}Permissions:
+    {% for t in tests %}
+    def test_anonymous_denied_on_{{ t.action }}(self, api_client{% if tenant_scoped and t.needs_instance %}, test_organization{% endif %}):
+        {% if owner_scoped and t.needs_instance %}
+        instance_owner = User.objects.create_user(username="{{ t.action }}-instance-owner", password="pass1234")
+        {% endif %}
+        {% if t.needs_instance or t.needs_payload %}
+        payload = {{ sample_payload }}
+        {% endif %}
+        {% if t.needs_instance %}
+        instance = {{ model_name }}.objects.create({{ direct_create_kwargs }}{% if owner_scoped %}owner=instance_owner, {% endif %}**payload)
+        {% endif %}
+        response = {{ t.call }}
+        assert response.status_code in (status.HTTP_401_UNAUTHORIZED, status.HTTP_403_FORBIDDEN)
+
+    def test_granted_user_can_{{ t.action }}(self, api_client{% if tenant_scoped %}, test_organization{% endif %}):
+        # Created before the instance below: with OwnerScopedViewSetMixin,
+        # a user can only reach rows they own, so the granted user has to
+        # be the same one who owns whatever gets created here.
+        user = User.objects.create_user(username="{{ t.action }}-role-user", password="pass1234")
+        {% if tenant_scoped %}
+        OrganizationMembership.objects.create(user=user, organization=test_organization)
+        {% endif %}
+        {% if t.is_codename %}
+        role = Role.objects.create(name="{{ model_name }} {{ t.action }} role")
+        role.grant("{{ t.rule }}")
+        user.groups.add(role)
+        {% endif %}
+        {% if t.needs_instance or t.needs_payload %}
+        payload = {{ sample_payload }}
+        {% endif %}
+        {% if t.needs_instance %}
+        instance = {{ model_name }}.objects.create({{ direct_create_kwargs }}{% if owner_scoped %}owner=user, {% endif %}**payload)
+        {% endif %}
+        api_client.force_authenticate(user)
+        response = {{ t.call }}
+        assert response.status_code not in (status.HTTP_401_UNAUTHORIZED, status.HTTP_403_FORBIDDEN)
+
+    {% endfor %}

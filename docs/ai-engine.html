@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>AI engine — Django Forge</title>
+<link rel="stylesheet" href="assets/style.css" />
+</head>
+<body>
+
+<div class="topbar">
+  <button class="menu-toggle" aria-label="Toggle menu">☰</button>
+  <a href="index.html" class="brand">django-forge <span class="version-pill">v0.1</span></a>
+  <div class="search-trigger"><span>🔍</span><span>Search docs...</span><kbd>⌘K</kbd></div>
+  <div class="right-links"><a class="gh-link" href="https://github.com/sujit-codezen/django-forge" target="_blank" rel="noopener"><span>GitHub</span></a></div>
+</div>
+
+<div class="layout">
+  <aside class="sidebar">
+    <div class="group-label">Introduction</div>
+    <nav>
+      <a href="index.html">Overview</a>
+      <a href="getting-started.html">Getting started</a>
+    </nav>
+    <div class="group-label">Core concepts</div>
+    <nav>
+      <a href="resources.html">The Resource class</a>
+      <a href="rbac.html">RBAC</a>
+      <a href="tenancy.html">Multi-tenancy</a>
+      <a href="ai-engine.html" class="active">AI engine</a>
+      <a href="audit-and-doctor.html">Audit &amp; doctor</a>
+    </nav>
+    <div class="group-label">Guides</div>
+    <nav>
+      <a href="demo.html">Demo project</a>
+    </nav>
+  </aside>
+
+  <main>
+    <div class="eyebrow">Core concepts</div>
+    <h1>AI engine</h1>
+    <p><strong>Analyze + suggest, apply only with your approval.</strong> Describe a feature in
+    plain English, get back a reviewable unified diff. By default nothing is ever written — you
+    review the diff and apply it by hand. Add <code>--apply</code> to be asked, after seeing the
+    diff, whether to write the files directly; it always requires a typed yes, never a silent
+    auto-apply.</p>
+
+    <h2 id="usage">Usage</h2>
+    <pre><code>python manage.py forge ai <span class="tok-str">"add a coupon system with percent or fixed-amount \
+discounts, an optional expiry date, and a usage limit"</span> --app products --output coupon.patch</code></pre>
+    <p>Omit <code>--output</code> to print the diff to the terminal instead of saving it.</p>
+
+    <h3 id="apply">--apply: approve without leaving the terminal</h3>
+    <pre><code>python manage.py forge ai <span class="tok-str">"add a coupon system..."</span> --app products --apply</code></pre>
+    <pre><code>--- a/products/models.py
++++ b/products/models.py
+...
+Write 2 file(s) now (products/models.py, products/resources.py)? [y/N]: </code></pre>
+    <p>Say yes and the files are written. Say no (or anything else) and nothing is. Two things
+    stay true either way:</p>
+    <ul>
+      <li>It only ever writes <code>models.py</code>/<code>resources.py</code> — never
+      <code>makemigrations</code>, never <code>forge resource</code>. Those are separate,
+      deliberate commands you run yourself once you've looked at what changed.</li>
+      <li>In a non-interactive session (no TTY — CI, a piped command) <code>--apply</code> always
+      declines and writes nothing, rather than guessing what you'd have said.</li>
+    </ul>
+
+    <h3>How it decides what to write</h3>
+    <p>It reads your project's existing models and Resources for context (via a compact indexer,
+    so the LLM matches your project's actual conventions instead of inventing its own), then asks
+    the configured provider for <strong>complete file contents</strong> — not a diff directly.</p>
+    <div class="callout tip">
+      <div class="icon">💡</div>
+      <p>Why whole files instead of asking the model for a diff? LLMs are far more reliable at
+      writing a complete, correct file than at producing valid unified-diff syntax by hand — and
+      diffing two known strings is a solved, deterministic problem Python's own
+      <code>difflib</code> already does correctly. So the model's job is kept simple, and the diff
+      itself is always syntactically valid.</p>
+    </div>
+
+    <h2 id="providers">Providers</h2>
+    <p>Nothing is hard-locked to one vendor — every provider is one class implementing a single method:</p>
+    <pre><code><span class="tok-kw">class</span> <span class="tok-fn">AIProvider</span>(abc.ABC):
+    <span class="tok-kw">@abc.abstractmethod</span>
+    <span class="tok-kw">def</span> <span class="tok-fn">complete</span>(self, system: <span class="tok-fn">str</span>, prompt: <span class="tok-fn">str</span>) -&gt; <span class="tok-fn">str</span>: ...</code></pre>
+    <p>Swap providers with one setting — nothing else in the AI engine changes, and nothing
+    extra to install: OpenAI, Anthropic, and Gemini's SDKs are all plain dependencies of
+    django-forge itself, so a single <code>pip install dj-forge</code> already has every
+    one of them.</p>
+    <pre><code><span class="tok-fn">FORGE_AI_PROVIDER</span> = <span class="tok-str">"django_forge.ai.providers.AnthropicProvider"</span>  <span class="tok-com"># dotted path to any AIProvider</span></code></pre>
+
+    <table>
+      <tr><th>Provider</th><th>API key</th><th>Default model</th></tr>
+      <tr><td><code>OpenAIProvider</code> <em>(default)</em></td><td><code>OPENAI_API_KEY</code></td><td><code>gpt-4o</code></td></tr>
+      <tr><td><code>AnthropicProvider</code></td><td><code>ANTHROPIC_API_KEY</code></td><td><code>claude-sonnet-5</code></td></tr>
+      <tr><td><code>GeminiProvider</code></td><td><code>GOOGLE_API_KEY</code></td><td><code>gemini-2.0-flash</code></td></tr>
+      <tr><td><code>StaticProvider</code></td><td>none</td><td>n/a — returns a fixed response, for tests/CI</td></tr>
+    </table>
+    <p>Every provider also accepts <code>FORGE_AI_API_KEY</code> and <code>FORGE_AI_MODEL</code> in
+    settings as vendor-agnostic overrides, if you'd rather not rely on each SDK's own env var or
+    want to pin a specific model.</p>
+
+    <div class="callout warn">
+      <div class="icon">⚠️</div>
+      <p><code>GeminiProvider</code> uses the <code>google-genai</code> package, not the older
+      <code>google-generativeai</code> — Google has end-of-lifed that one in favor of this one.
+      If you see a deprecation warning mentioning <code>google.generativeai</code>, you're on the
+      old package; switch to <code>google-genai</code>.</p>
+    </div>
+
+    <pre><code><span class="tok-com"># settings.py</span>
+<span class="tok-fn">FORGE_AI_PROVIDER</span> = <span class="tok-str">"django_forge.ai.providers.GeminiProvider"</span>
+<span class="tok-fn">FORGE_AI_MODEL</span> = <span class="tok-str">"gemini-2.0-flash"</span>       <span class="tok-com"># optional override</span>
+<span class="tok-fn">FORGE_AI_API_KEY</span> = env(<span class="tok-str">"GEMINI_KEY"</span>)         <span class="tok-com"># optional override; else GOOGLE_API_KEY env var</span></code></pre>
+
+    <p>A <code>StaticProvider</code> also ships, for tests/CI: returns a fixed
+    <code>FORGE_AI_STATIC_RESPONSE</code> instead of calling anything, so the rest of the pipeline
+    (indexing, prompting, diff-building) can be exercised with no network and no API key.</p>
+
+    <h3>Custom providers</h3>
+    <p>Any vendor Forge doesn't ship a wrapper for yet — a self-hosted model, an internal proxy,
+    Azure OpenAI, Ollama — is the same shape. <code>django_forge.ai.providers.CustomProviderExample</code>
+    is a working template (a bare HTTP POST to a local Ollama-style endpoint):</p>
+    <pre><code><span class="tok-kw">class</span> <span class="tok-fn">CustomProviderExample</span>(AIProvider):
+    <span class="tok-kw">def</span> <span class="tok-fn">__init__</span>(self):
+        self._endpoint = getattr(settings, <span class="tok-str">"FORGE_AI_ENDPOINT"</span>, <span class="tok-str">"http://localhost:11434/api/generate"</span>)
+
+    <span class="tok-kw">def</span> <span class="tok-fn">complete</span>(self, system: <span class="tok-fn">str</span>, prompt: <span class="tok-fn">str</span>) -&gt; <span class="tok-fn">str</span>:
+        body = json.dumps({<span class="tok-str">"prompt"</span>: <span class="tok-fn">f</span><span class="tok-str">"{system}\n\n{prompt}"</span>, <span class="tok-str">"stream"</span>: <span class="tok-kw">False</span>}).encode()
+        request = urllib.request.Request(self._endpoint, data=body, headers={<span class="tok-str">"Content-Type"</span>: <span class="tok-str">"application/json"</span>})
+        <span class="tok-kw">with</span> urllib.request.urlopen(request) <span class="tok-kw">as</span> response:
+            <span class="tok-kw">return</span> json.loads(response.read())[<span class="tok-str">"response"</span>]</code></pre>
+    <p>Write your own the same way — one class, one method, point <code>FORGE_AI_PROVIDER</code> at
+    its dotted path (it doesn't need to live inside <code>django_forge</code>; anywhere importable
+    in your project works, e.g. <code>"myapp.ai.MyProvider"</code>).</p>
+
+    <div class="callout tip">
+      <div class="icon">💡</div>
+      <p>All three real providers (Anthropic, OpenAI, Gemini) are covered by mock-based unit
+      tests in the repo's own <code>tests/test_ai_providers.py</code> — verifying each one calls
+      its SDK with the right request shape and correctly extracts the response text, without
+      needing a real API key or network access to run.</p>
+    </div>
+
+    <h2 id="applying">Applying the diff by hand (without --apply)</h2>
+    <pre><code>git apply coupon.patch
+<span class="tok-com"># or, without git:</span>
+patch -p1 &lt; coupon.patch</code></pre>
+    <p>Either way — <code>--apply</code> or applying the saved patch by hand — finish the same way,
+    once you've looked at what changed:</p>
+    <pre><code>python manage.py makemigrations products
+python manage.py forge resource Coupon</code></pre>
+
+    <div class="callout info">
+      <div class="icon">ℹ️</div>
+      <p>The system prompt tells the model Forge's own conventions explicitly — plain models in
+      <code>models.py</code>, a matching <code>Resource</code> in <code>resources.py</code>, and
+      not to write <code>serializers.py</code>/<code>views.py</code>/<code>urls.py</code>/<code>admin.py</code>
+      itself, since <code>forge resource</code> generates those.</p>
+    </div>
+
+    <div class="page-nav">
+      <a href="tenancy.html"><div class="dir">← Back</div><div class="title">Multi-tenancy</div></a>
+      <a href="audit-and-doctor.html" class="next"><div class="dir">Next</div><div class="title">Audit &amp; doctor →</div></a>
+    </div>
+  </main>
+
+  <aside class="toc">
+    <div class="toc-label">☰ On this page</div>
+    <a href="#usage">Usage</a>
+    <a href="#providers">Providers</a>
+    <a href="#applying">Applying the diff by hand</a>
+  </aside>
+</div>
+
+<div class="search-backdrop">
+  <div class="search-modal">
+    <input type="text" placeholder="Search documentation..." autocomplete="off" />
+    <div class="search-results"></div>
+  </div>
+</div>
+
+<script src="assets/search-index.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>

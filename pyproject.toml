@@ -1,0 +1,67 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "dj-forge"
+version = "0.1.0"
+description = "Declarative Resource -> API + admin + tests generator for Django/DRF projects"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "Django Forge contributors" }]
+keywords = ["django", "django-rest-framework", "drf", "codegen", "rbac", "multi-tenancy"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Framework :: Django",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Topic :: Software Development :: Code Generators",
+]
+dependencies = [
+    "Django>=4.2",
+    "djangorestframework>=3.14",
+    "django-filter>=23.0",
+    "Jinja2>=3.1",
+    # AI providers and audit history are plain dependencies, not extras:
+    # `pip install dj-forge` alone is meant to get you everything --
+    # FORGE_AI_PROVIDER picks which provider is actually *used* at
+    # runtime, the others just sit there unused rather than unavailable.
+    "openai>=1.0",
+    "anthropic>=0.40",
+    "google-genai>=0.5",
+    "django-simple-history>=3.4",
+]
+
+[project.urls]
+Homepage = "https://github.com/sujit-codezen/django-forge"
+Documentation = "https://sujit-codezen.github.io/django-forge/"
+Repository = "https://github.com/sujit-codezen/django-forge"
+Issues = "https://github.com/sujit-codezen/django-forge/issues"
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4",
+    "pytest-django>=4.7",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+# The codegen templates are .jinja files, not .py -- setuptools doesn't
+# package non-Python files by default, so without this a real (non-
+# editable) install silently ships with no templates and `forge
+# resource` breaks immediately. Editable installs (pip install -e .)
+# never hit this, since they point straight at the source tree, which
+# is why it went unnoticed until actually building a wheel.
+django_forge = ["templates/*.jinja"]
+
+[tool.pytest.ini_options]
+# demo/ is its own separate Django project with its own settings and its
+# own pytest.ini (run from inside demo/, per the README) -- it must NOT
+# be picked up by a bare `pytest` here, since demo/config/settings and
+# this package's minimal test settings (tests/conftest.py) can't both
+# configure the one process-global Django settings object.
+testpaths = ["tests"]

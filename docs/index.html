@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Django Forge — Documentation</title>
+<meta name="description" content="Declarative Resource classes that generate a DRF API, RBAC, multi-tenancy, audit history, and tests from one model definition." />
+<link rel="stylesheet" href="assets/style.css" />
+</head>
+<body>
+
+<div class="topbar">
+  <button class="menu-toggle" aria-label="Toggle menu">☰</button>
+  <a href="index.html" class="brand">django-forge <span class="version-pill">v0.1</span></a>
+  <div class="search-trigger"><span>🔍</span><span>Search docs...</span><kbd>⌘K</kbd></div>
+  <div class="right-links">
+    <a class="gh-link" href="https://github.com/sujit-codezen/django-forge" target="_blank" rel="noopener">
+      <span>GitHub</span>
+    </a>
+  </div>
+</div>
+
+<div class="layout">
+  <aside class="sidebar">
+    <div class="group-label">Introduction</div>
+    <nav>
+      <a href="index.html" class="active">Overview</a>
+      <a href="getting-started.html">Getting started</a>
+    </nav>
+    <div class="group-label">Core concepts</div>
+    <nav>
+      <a href="resources.html">The Resource class</a>
+      <a href="rbac.html">RBAC</a>
+      <a href="tenancy.html">Multi-tenancy</a>
+      <a href="ai-engine.html">AI engine</a>
+      <a href="audit-and-doctor.html">Audit &amp; doctor</a>
+    </nav>
+    <div class="group-label">Guides</div>
+    <nav>
+      <a href="demo.html">Demo project</a>
+    </nav>
+  </aside>
+
+  <main style="max-width:none; padding:0;">
+    <div class="hero">
+      <h1>Django Forge</h1>
+      <p>Declarative <code>Resource</code> classes that generate a DRF API, RBAC enforcement,
+      multi-tenant scoping, audit history, and tests — from one model definition.
+      Free, open-source, installs into any existing Django + DRF project.</p>
+      <div class="badges">
+        <span class="badge accent">No hosted service</span>
+        <span class="badge">Wraps DRF, django-filter, Django's own auth</span>
+        <span class="badge">MIT licensed</span>
+      </div>
+    </div>
+
+    <div class="section-label" id="why-forge">Why Forge</div>
+    <div class="intro">
+      <p>Every Django + DRF project ends up writing the same boilerplate for every model: a
+      serializer, a viewset with search/filter/ordering wired up, a router registration, an
+      admin registration, a test file. Then doing it again for permissions. Again for
+      multi-tenancy. Again for audit history — usually slightly differently each time, by
+      whoever wrote that particular model.</p>
+      <p>Forge collapses all of that into one declarative <code>Resource</code> class per model.
+      Run one command and get real, ordinary, editable Django/DRF code back — not a runtime
+      abstraction you have to work around later when it doesn't fit. It installs into an
+      existing project; it doesn't ask you to restructure one around it.</p>
+    </div>
+
+    <div class="section-label" id="how-it-works">How it works</div>
+    <div class="card-grid">
+      <div class="card">
+        <div class="step-number">1</div>
+        <div class="card-title">Define</div>
+        <div class="card-desc">Write one <code>Resource</code> class next to your model — fields, permissions, tenancy, all declarative.</div>
+      </div>
+      <div class="card">
+        <div class="step-number">2</div>
+        <div class="card-title">Generate</div>
+        <div class="card-desc"><code>forge resource Product</code> writes the serializer, viewset, urls, admin, and tests.</div>
+      </div>
+      <div class="card">
+        <div class="step-number">3</div>
+        <div class="card-title">Ship</div>
+        <div class="card-desc">A full CRUD API — filtered, permissioned, tenant-scoped, tested — ready to run.</div>
+      </div>
+    </div>
+
+    <div class="section-label" id="principles">Principles</div>
+    <div class="card-grid">
+      <a class="card" href="rbac.html">
+        <div class="card-icon">🧱</div>
+        <div class="card-title">Wrap, don't reinvent</div>
+        <div class="card-desc">Django's own auth, DRF, django-filter, django-simple-history do the real work. No proprietary formats, no vendor lock-in.</div>
+      </a>
+      <a class="card" href="tenancy.html">
+        <div class="card-icon">🔒</div>
+        <div class="card-title">Fails closed</div>
+        <div class="card-desc">RBAC and multi-tenancy deny by default. A forgotten rule locks a door — it never quietly leaves one open.</div>
+      </a>
+      <a class="card" href="resources.html">
+        <div class="card-icon">📖</div>
+        <div class="card-title">Real code, no black box</div>
+        <div class="card-desc">Every generated file is plain, editable Django/DRF you can read top to bottom and change by hand.</div>
+      </a>
+    </div>
+
+    <div class="section-label">Quick links</div>
+    <div class="card-grid">
+      <a class="card" href="getting-started.html">
+        <div class="card-icon">🚀</div>
+        <div class="card-title">Getting started</div>
+        <div class="card-desc">Install Forge, define a Resource, and generate a full API in about a minute.</div>
+      </a>
+      <a class="card" href="resources.html">
+        <div class="card-icon">🧩</div>
+        <div class="card-title">The Resource class</div>
+        <div class="card-desc">One declarative class → serializer, viewset, admin, and tests.</div>
+      </a>
+      <a class="card" href="rbac.html">
+        <div class="card-icon">🔐</div>
+        <div class="card-title">RBAC</div>
+        <div class="card-desc">Role-based permissions on top of Django's own Group/Permission system. Fails closed.</div>
+      </a>
+      <a class="card" href="tenancy.html">
+        <div class="card-icon">🏢</div>
+        <div class="card-title">Multi-tenancy</div>
+        <div class="card-desc">Shared-schema organizations, auto-scoped querysets, fails closed by default.</div>
+      </a>
+      <a class="card" href="ai-engine.html">
+        <div class="card-icon">✨</div>
+        <div class="card-title">AI engine</div>
+        <div class="card-desc">Describe a feature, get a reviewable diff. Never writes files on its own.</div>
+      </a>
+      <a class="card" href="audit-and-doctor.html">
+        <div class="card-icon">🩺</div>
+        <div class="card-title">Audit &amp; doctor</div>
+        <div class="card-desc">Full change history in the admin, plus a health check for common mistakes.</div>
+      </a>
+    </div>
+  </main>
+</div>
+
+<div class="search-backdrop">
+  <div class="search-modal">
+    <input type="text" placeholder="Search documentation..." autocomplete="off" />
+    <div class="search-results"></div>
+  </div>
+</div>
+
+<script src="assets/search-index.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>
