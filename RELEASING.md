@@ -1,4 +1,4 @@
-# Releasing django-forgekit to PyPI
+# Releasing django-anvil to PyPI
 
 Publishing uses PyPI's **Trusted Publishing** (OIDC) via
 `.github/workflows/publish.yml` — no API token is ever created, stored,
@@ -15,14 +15,14 @@ the PyPI project.
 
    | Field | Value |
    |---|---|
-   | PyPI Project Name | `django-forgekit` |
+   | PyPI Project Name | `django-anvil` |
    | Owner | `sujit-codezen` |
    | Repository name | `django-forge` |
    | Workflow name | `publish.yml` |
    | Environment name | `pypi` |
 
 4. Click **Add**. PyPI now trusts this exact GitHub Actions workflow to
-   publish `django-forgekit` — the project doesn't need to exist on PyPI yet
+   publish `django-anvil` — the project doesn't need to exist on PyPI yet
    for this step ("pending publisher").
 
 That's the only step that needs a human at a keyboard with a PyPI
@@ -43,5 +43,5 @@ Watch it run under the repo's **Actions** tab.
 ## Verifying a release
 
 ```bash
-pip index versions django-forgekit   # or just check https://pypi.org/project/django-forgekit/
+pip index versions django-anvil   # or just check https://pypi.org/project/django-anvil/
 ```

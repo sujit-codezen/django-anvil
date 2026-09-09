@@ -15,7 +15,7 @@ audit polish. See `demo/` for a working example (four resources —
 ## Install into a project
 
 ```bash
-pip install django-forgekit
+pip install django-anvil
 ```
 
 Installing from a local checkout instead (for contributing to Forge itself):

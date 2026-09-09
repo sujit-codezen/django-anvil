@@ -86,7 +86,7 @@ Write 2 file(s) now (products/models.py, products/resources.py)? [y/N]: </code><
     <span class="tok-kw">def</span> <span class="tok-fn">complete</span>(self, system: <span class="tok-fn">str</span>, prompt: <span class="tok-fn">str</span>) -&gt; <span class="tok-fn">str</span>: ...</code></pre>
     <p>Swap providers with one setting — nothing else in the AI engine changes, and nothing
     extra to install: OpenAI, Anthropic, and Gemini's SDKs are all plain dependencies of
-    django-forge itself, so a single <code>pip install django-forgekit</code> already has every
+    django-forge itself, so a single <code>pip install django-anvil</code> already has every
     one of them.</p>
     <pre><code><span class="tok-fn">FORGE_AI_PROVIDER</span> = <span class="tok-str">"django_forge.ai.providers.AnthropicProvider"</span>  <span class="tok-com"># dotted path to any AIProvider</span></code></pre>
 
