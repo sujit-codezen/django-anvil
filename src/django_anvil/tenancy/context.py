@@ -6,7 +6,7 @@ thread.
 
 import contextvars
 
-_current_organization_id = contextvars.ContextVar("forge_current_organization_id", default=None)
+_current_organization_id = contextvars.ContextVar("anvil_current_organization_id", default=None)
 
 
 def get_current_organization_id():

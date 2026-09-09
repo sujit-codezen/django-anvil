@@ -15,8 +15,8 @@ _SKIP_APP_LABELS = {
     "messages",
     "staticfiles",
     "django_anvil",
-    "forge_rbac",
-    "forge_tenancy",
+    "anvil_rbac",
+    "anvil_tenancy",
 }
 
 

@@ -96,7 +96,7 @@ manager_role.grant(<span class="tok-str">"products.add_product"</span>, <span cl
 alice.groups.add(manager_role)  <span class="tok-com"># plain Django, User.groups is unmodified</span></code></pre>
 
     <p>You could delete <code>django_anvil.rbac</code> entirely and get the identical result with
-    <code>Group</code>/<code>Permission</code> directly — Forge's version is just shorter to type.</p>
+    <code>Group</code>/<code>Permission</code> directly — Anvil's version is just shorter to type.</p>
 
     <h2 id="fail-closed">Fails closed by default</h2>
     <pre><code><span class="tok-kw">class</span> <span class="tok-fn">ResourcePermission</span>(BasePermission):
@@ -133,7 +133,7 @@ alice.groups.add(manager_role)  <span class="tok-com"># plain Django, User.group
 
     <div class="callout info">
       <div class="icon">ℹ️</div>
-      <p><code>forge doctor</code> flags a permission codename that doesn't match any real
+      <p><code>anvil doctor</code> flags a permission codename that doesn't match any real
       permission on the model — since RBAC fails closed, a typo there silently locks
       <em>everyone</em> out of that action with no error to point at the cause. See
       <a class="inline-link" href="audit-and-doctor.html#doctor">Audit &amp; doctor</a>.</p>

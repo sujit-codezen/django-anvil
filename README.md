@@ -18,7 +18,7 @@ audit polish. See `demo/` for a working example (four resources —
 pip install django-anvil
 ```
 
-Installing from a local checkout instead (for contributing to Forge itself):
+Installing from a local checkout instead (for contributing to Anvil itself):
 
 ```bash
 pip install -e /path/to/django-anvil
@@ -27,7 +27,7 @@ pip install -e /path/to/django-anvil
 One install, everything included — the AI providers (OpenAI, Anthropic,
 Gemini) and `django-simple-history` (for `audited = True`) are plain
 dependencies of django-anvil itself, not opt-in extras. Nothing extra to
-remember; `FORGE_AI_PROVIDER` just picks which AI provider is actually
+remember; `ANVIL_AI_PROVIDER` just picks which AI provider is actually
 *used*.
 
 ```python
@@ -78,7 +78,7 @@ MIDDLEWARE = [
 2. Generate everything:
 
     ```bash
-    python manage.py forge resource Product
+    python manage.py anvil resource Product
     ```
 
    This writes/merges into `your_app/api/serializers.py`,
@@ -86,7 +86,7 @@ MIDDLEWARE = [
    in `your_app/admin.py`, and writes `your_app/tests/test_product_api.py`
    (plus RBAC/tenancy test files if those are enabled). Multiple
    Resources in the same app share these files correctly — a second
-   `forge resource Coupon` adds its own classes alongside `Product`'s,
+   `anvil resource Coupon` adds its own classes alongside `Product`'s,
    the way a person would by hand. Re-running is safe by default: it
    never overwrites a Resource's existing block unless you pass
    `--force` (which regenerates only that Resource's block, not
@@ -104,8 +104,8 @@ MIDDLEWARE = [
    mistakes:
 
     ```bash
-    python manage.py forge list
-    python manage.py forge doctor
+    python manage.py anvil list
+    python manage.py anvil doctor
     ```
 
 ## RBAC
@@ -168,7 +168,7 @@ tenant-scoped queryset filters what that role is allowed to see.
 ## AI engine (analyze + suggest, apply only with your approval)
 
 ```bash
-python manage.py forge ai "add a coupon system with percent or fixed-amount \
+python manage.py anvil ai "add a coupon system with percent or fixed-amount \
 discounts, an optional expiry date, and a usage limit" --app products --output coupon.patch
 ```
 
@@ -177,14 +177,14 @@ LLM provider for complete `models.py`/`resources.py` file contents (not
 a diff — LLMs write whole files far more reliably than correct diff
 syntax), and computes the unified diff itself. **By default, nothing is
 ever written** — review the diff, apply it by hand (`git apply
-coupon.patch` or `patch -p1 < coupon.patch`), then run `forge resource
+coupon.patch` or `patch -p1 < coupon.patch`), then run `anvil resource
 <NewModel>` yourself.
 
 Add `--apply` to be asked, after seeing the diff, whether to write the
 files directly:
 
 ```bash
-python manage.py forge ai "add a coupon system..." --app products --apply
+python manage.py anvil ai "add a coupon system..." --app products --apply
 ```
 ```
 --- a/products/models.py
@@ -196,12 +196,12 @@ Write 2 file(s) now (products/models.py, products/resources.py)? [y/N]:
 `--apply` never writes without that typed confirmation — it isn't a
 "trust the AI" flag, it's "let me approve without leaving the
 terminal." It still only ever writes `models.py`/`resources.py`; it
-never runs `makemigrations` or `forge resource` for you — those stay
+never runs `makemigrations` or `anvil resource` for you — those stay
 separate, deliberate steps you run yourself once you've looked at what
 changed. In a non-interactive session (no TTY — CI, a piped command),
 `--apply` always declines and writes nothing, rather than guessing.
 
-Four providers ship, chosen via `FORGE_AI_PROVIDER` (a dotted path — nothing
+Four providers ship, chosen via `ANVIL_AI_PROVIDER` (a dotted path — nothing
 in the AI engine itself is hard-locked to one vendor). All three real
 providers' SDKs come with a plain `pip install django-anvil` — no
 extras needed:
@@ -217,9 +217,9 @@ Switching providers is exactly this — no installing anything else, ever:
 
 ```python
 # settings.py
-FORGE_AI_PROVIDER = "django_anvil.ai.providers.AnthropicProvider"  # or OpenAIProvider / GeminiProvider
-FORGE_AI_MODEL = "claude-sonnet-5"  # optional override, per-provider default otherwise
-FORGE_AI_API_KEY = env("MY_KEY")    # optional; falls back to each SDK's own env var
+ANVIL_AI_PROVIDER = "django_anvil.ai.providers.AnthropicProvider"  # or OpenAIProvider / GeminiProvider
+ANVIL_AI_MODEL = "claude-sonnet-5"  # optional override, per-provider default otherwise
+ANVIL_AI_API_KEY = env("MY_KEY")    # optional; falls back to each SDK's own env var
 ```
 
 `GeminiProvider` uses the current `google-genai` package, not the
@@ -233,15 +233,15 @@ against a mocked SDK (no real API key needed to run those tests).
 ## Audit history
 
 Set `audited = True` on a Resource and add
-`history = HistoricalRecords()` to the model yourself (Forge wires up
+`history = HistoricalRecords()` to the model yourself (Anvil wires up
 the *admin* integration — `SimpleHistoryAdmin`, giving a full change
 log in the admin UI — but never edits your model file for you, the same
 policy as `TenantScopedModel`). `django-simple-history` is already
 installed as part of django-anvil — just add `"simple_history"` to
-`INSTALLED_APPS`. `forge doctor` flags a Resource that says
+`INSTALLED_APPS`. `anvil doctor` flags a Resource that says
 `audited = True` but whose model doesn't have the field yet.
 
-## `forge doctor`
+## `anvil doctor`
 
 Static checks, no database needed — safe to run in CI before `migrate`:
 
@@ -280,7 +280,7 @@ its name (`...SerializerMixin` vs `...ViewSetMixin`):
 Write your own the same way: a plain class following the same naming
 convention, mixed into the generated `ModelViewSet`/`ModelSerializer`.
 
-## Developing Forge itself
+## Developing Anvil itself
 
 Two separate test suites, for two separate things:
 
@@ -305,7 +305,7 @@ via four Resources in one app:
 | `Product` | RBAC (mixed `public`/codename rules), tenancy, `SoftDeleteViewSetMixin`, `TimestampedSerializerMixin` |
 | `Coupon` | RBAC (all codenames, no `public`), tenancy, audit history (`SimpleHistoryAdmin`) |
 | `Review` | `OwnerScopedViewSetMixin`, the `"authenticated"` permission rule, deliberately *not* tenant-scoped |
-| `Tag` | Added live via `forge ai --apply` during development — proof the propose→approve→write loop produces a genuinely working Resource |
+| `Tag` | Added live via `anvil ai --apply` during development — proof the propose→approve→write loop produces a genuinely working Resource |
 
 To run it yourself:
 
@@ -315,7 +315,7 @@ pip install -e ".[dev]"
 cd demo
 python manage.py migrate
 python -m pytest products/ -v      # 49 tests
-python manage.py forge doctor
+python manage.py anvil doctor
 python manage.py seed_demo          # orgs, roles, users, sample data -- safe to re-run
 python manage.py runserver
 ```

@@ -3,7 +3,7 @@ previously only verified by hand, once, during development. Covers the
 three separately-testable steps: parsing a provider's response into
 ProposedChange objects, diffing them against what's on disk, and
 actually writing them (apply_changes) -- the one function that touches
-disk, and the only thing `forge ai --apply` calls after a human types
+disk, and the only thing `anvil ai --apply` calls after a human types
 "y".
 """
 
@@ -114,8 +114,8 @@ def test_apply_changes_reports_updated_for_an_existing_file(tmp_path):
 def test_suggest_feature_uses_configured_provider_and_parses_its_response(tmp_path):
     with override_settings(
         BASE_DIR=tmp_path,
-        FORGE_AI_PROVIDER="django_anvil.ai.providers.StaticProvider",
-        FORGE_AI_STATIC_RESPONSE=_TWO_FILE_RESPONSE,
+        ANVIL_AI_PROVIDER="django_anvil.ai.providers.StaticProvider",
+        ANVIL_AI_STATIC_RESPONSE=_TWO_FILE_RESPONSE,
     ):
         changes = suggest_feature("add a Tag model", "products")
 

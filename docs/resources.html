@@ -39,7 +39,7 @@
   <main>
     <div class="eyebrow">Core concepts</div>
     <h1>The Resource class</h1>
-    <p>A <code>Resource</code> is the single declarative description of everything Forge generates
+    <p>A <code>Resource</code> is the single declarative description of everything Anvil generates
     for a model. Define it once in <code>&lt;app&gt;/resources.py</code>; it registers itself
     automatically (the same way Django's own <code>admin.py</code> autodiscovery works) —
     no manual registration call needed.</p>
@@ -71,11 +71,11 @@
       <tr><td><code>filters</code></td><td>Wired into <code>django-filter</code>'s <code>DjangoFilterBackend</code> (<code>?field=value</code>)</td></tr>
       <tr><td><code>sortable</code></td><td>Wired into DRF's <code>OrderingFilter</code> (<code>?ordering=-field</code>)</td></tr>
     </table>
-    <p>These wrap <code>django-filter</code> and DRF's own filter backends directly — Forge doesn't
+    <p>These wrap <code>django-filter</code> and DRF's own filter backends directly — Anvil doesn't
     reimplement filtering, it just wires the declaration through.</p>
 
     <h2 id="generated-files">What gets generated</h2>
-    <p>One <code>forge resource Product</code> call produces:</p>
+    <p>One <code>anvil resource Product</code> call produces:</p>
     <table>
       <tr><th>File</th><th>Content</th></tr>
       <tr><td><code>api/serializers.py</code></td><td><code>ProductSerializer(ModelSerializer)</code></td></tr>
@@ -133,8 +133,8 @@
     alongside — merges the router registration, folds new imports into existing
     <code>from ..models import ...</code> lines (sorted, deduplicated), and never disturbs
     <code>Product</code>'s own generated code.</p>
-    <pre><code>python manage.py forge resource Product
-python manage.py forge resource Coupon   <span class="tok-com"># adds CouponSerializer/ViewSet alongside Product's</span></code></pre>
+    <pre><code>python manage.py anvil resource Product
+python manage.py anvil resource Coupon   <span class="tok-com"># adds CouponSerializer/ViewSet alongside Product's</span></code></pre>
 
     <div class="page-nav">
       <a href="getting-started.html"><div class="dir">← Back</div><div class="title">Getting started</div></a>

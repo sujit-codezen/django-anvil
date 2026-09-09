@@ -5,7 +5,7 @@ Django settings, so swapping providers never touches suggest.py.
 Ships four: OpenAI (default), Anthropic, Gemini, and a Static one for
 tests/CI. All three real providers' SDKs are plain dependencies of
 django-anvil itself -- `pip install django-anvil` alone gets you all of
-them, no extras to remember. FORGE_AI_PROVIDER just picks which one is
+them, no extras to remember. ANVIL_AI_PROVIDER just picks which one is
 actually *used* at runtime; the other two sit there unused rather than
 unavailable. Writing your own provider is exactly this shape -- see
 CustomProviderExample at the bottom for a template.
@@ -24,7 +24,7 @@ class AIProvider(abc.ABC):
 
 
 class AnthropicProvider(AIProvider):
-    """Needs an ANTHROPIC_API_KEY (or FORGE_AI_API_KEY in settings/env;
+    """Needs an ANTHROPIC_API_KEY (or ANVIL_AI_API_KEY in settings/env;
     falls back to the SDK's own env var if neither is set). The
     'anthropic' package itself ships as a plain django-anvil dependency,
     so a normal `pip install django-anvil` already has it.
@@ -42,8 +42,8 @@ class AnthropicProvider(AIProvider):
                 "installed as part of django-anvil. Try: pip install anthropic"
             ) from exc
 
-        self._client = anthropic.Anthropic(api_key=api_key or getattr(settings, "FORGE_AI_API_KEY", None))
-        self._model = model or getattr(settings, "FORGE_AI_MODEL", "claude-sonnet-5")
+        self._client = anthropic.Anthropic(api_key=api_key or getattr(settings, "ANVIL_AI_API_KEY", None))
+        self._model = model or getattr(settings, "ANVIL_AI_MODEL", "claude-sonnet-5")
 
     def complete(self, system: str, prompt: str) -> str:
         response = self._client.messages.create(
@@ -56,8 +56,8 @@ class AnthropicProvider(AIProvider):
 
 
 class OpenAIProvider(AIProvider):
-    """Default provider. Needs an OPENAI_API_KEY (or FORGE_AI_API_KEY).
-    Override the model via FORGE_AI_MODEL -- the default below is just a
+    """Default provider. Needs an OPENAI_API_KEY (or ANVIL_AI_API_KEY).
+    Override the model via ANVIL_AI_MODEL -- the default below is just a
     reasonable starting point, not a promise it's OpenAI's current best
     model by the time you're reading this. The 'openai' package itself
     ships as a plain django-anvil dependency.
@@ -72,8 +72,8 @@ class OpenAIProvider(AIProvider):
                 "installed as part of django-anvil. Try: pip install openai"
             ) from exc
 
-        self._client = OpenAI(api_key=api_key or getattr(settings, "FORGE_AI_API_KEY", None))
-        self._model = model or getattr(settings, "FORGE_AI_MODEL", "gpt-4o")
+        self._client = OpenAI(api_key=api_key or getattr(settings, "ANVIL_AI_API_KEY", None))
+        self._model = model or getattr(settings, "ANVIL_AI_MODEL", "gpt-4o")
 
     def complete(self, system: str, prompt: str) -> str:
         response = self._client.chat.completions.create(
@@ -88,8 +88,8 @@ class OpenAIProvider(AIProvider):
 
 
 class GeminiProvider(AIProvider):
-    """Needs a GOOGLE_API_KEY (or FORGE_AI_API_KEY). Override the model
-    via FORGE_AI_MODEL -- same caveat as OpenAIProvider's default above.
+    """Needs a GOOGLE_API_KEY (or ANVIL_AI_API_KEY). Override the model
+    via ANVIL_AI_MODEL -- same caveat as OpenAIProvider's default above.
 
     Uses the `google-genai` package, not the older `google-generativeai`
     -- Google has end-of-lifed the latter (it printed a deprecation
@@ -107,9 +107,9 @@ class GeminiProvider(AIProvider):
                 "installed as part of django-anvil. Try: pip install google-genai"
             ) from exc
 
-        resolved_key = api_key or getattr(settings, "FORGE_AI_API_KEY", None)
+        resolved_key = api_key or getattr(settings, "ANVIL_AI_API_KEY", None)
         self._client = genai.Client(api_key=resolved_key) if resolved_key else genai.Client()
-        self._model = model or getattr(settings, "FORGE_AI_MODEL", "gemini-2.0-flash")
+        self._model = model or getattr(settings, "ANVIL_AI_MODEL", "gemini-2.0-flash")
 
     def complete(self, system: str, prompt: str) -> str:
         from google.genai import types
@@ -124,29 +124,29 @@ class GeminiProvider(AIProvider):
 
 class StaticProvider(AIProvider):
     """Returns a fixed, pre-set response instead of calling anything.
-    For tests and CI -- set FORGE_AI_PROVIDER to this and FORGE_AI_STATIC_RESPONSE
+    For tests and CI -- set ANVIL_AI_PROVIDER to this and ANVIL_AI_STATIC_RESPONSE
     to what it should return, so the rest of the pipeline (indexing,
     prompting, diff-building) can be exercised with no network and no
     API key.
     """
 
     def complete(self, system: str, prompt: str) -> str:
-        response = getattr(settings, "FORGE_AI_STATIC_RESPONSE", None)
+        response = getattr(settings, "ANVIL_AI_STATIC_RESPONSE", None)
         if response is None:
-            raise RuntimeError("StaticProvider needs settings.FORGE_AI_STATIC_RESPONSE to be set.")
+            raise RuntimeError("StaticProvider needs settings.ANVIL_AI_STATIC_RESPONSE to be set.")
         return response
 
 
 class CustomProviderExample(AIProvider):
     """Not registered anywhere, not used by default -- a template. Any
     class with this one method (`complete(system, prompt) -> str`) works;
-    point FORGE_AI_PROVIDER at its dotted path. Useful for a self-hosted
-    model, an internal proxy, or a vendor Forge doesn't ship a wrapper
+    point ANVIL_AI_PROVIDER at its dotted path. Useful for a self-hosted
+    model, an internal proxy, or a vendor Anvil doesn't ship a wrapper
     for yet.
     """
 
     def __init__(self):
-        self._endpoint = getattr(settings, "FORGE_AI_ENDPOINT", "http://localhost:11434/api/generate")
+        self._endpoint = getattr(settings, "ANVIL_AI_ENDPOINT", "http://localhost:11434/api/generate")
 
     def complete(self, system: str, prompt: str) -> str:
         import json
@@ -159,6 +159,6 @@ class CustomProviderExample(AIProvider):
 
 
 def get_provider() -> AIProvider:
-    dotted_path = getattr(settings, "FORGE_AI_PROVIDER", "django_anvil.ai.providers.OpenAIProvider")
+    dotted_path = getattr(settings, "ANVIL_AI_PROVIDER", "django_anvil.ai.providers.OpenAIProvider")
     provider_cls = import_string(dotted_path)
     return provider_cls()

@@ -92,19 +92,19 @@ def test_provider_raises_actionable_error_when_sdk_missing():
 
 
 def test_static_provider_returns_configured_response():
-    with override_settings(FORGE_AI_STATIC_RESPONSE="canned response"):
+    with override_settings(ANVIL_AI_STATIC_RESPONSE="canned response"):
         assert StaticProvider().complete(system="x", prompt="y") == "canned response"
 
 
 def test_static_provider_without_configured_response_raises():
-    with pytest.raises(RuntimeError, match="FORGE_AI_STATIC_RESPONSE"):
+    with pytest.raises(RuntimeError, match="ANVIL_AI_STATIC_RESPONSE"):
         StaticProvider().complete(system="x", prompt="y")
 
 
 def test_get_provider_resolves_dotted_path_from_settings():
     with override_settings(
-        FORGE_AI_PROVIDER="django_anvil.ai.providers.StaticProvider",
-        FORGE_AI_STATIC_RESPONSE="ok",
+        ANVIL_AI_PROVIDER="django_anvil.ai.providers.StaticProvider",
+        ANVIL_AI_STATIC_RESPONSE="ok",
     ):
         provider = get_provider()
     assert isinstance(provider, StaticProvider)

@@ -38,7 +38,7 @@
 
   <main>
     <div class="eyebrow">Core concepts</div>
-    <h1>Audit history &amp; forge doctor</h1>
+    <h1>Audit history &amp; anvil doctor</h1>
 
     <h2 id="audit">Audit history</h2>
     <p>Wraps <a class="inline-link" href="https://github.com/jazzband/django-simple-history" target="_blank" rel="noopener"><code>django-simple-history</code></a>
@@ -47,14 +47,14 @@
     model = Coupon
     ...
     audited = <span class="tok-kw">True</span></code></pre>
-    <p>and add the history field to the model <strong>yourself</strong> — Forge never edits model
+    <p>and add the history field to the model <strong>yourself</strong> — Anvil never edits model
     files for you, the same policy as <code>TenantScopedModel</code>:</p>
     <pre><code><span class="tok-kw">from</span> simple_history.models <span class="tok-kw">import</span> HistoricalRecords
 
 <span class="tok-kw">class</span> <span class="tok-fn">Coupon</span>(TenantScopedModel):
     ...
     history = HistoricalRecords()</code></pre>
-    <p>Forge wires up the <em>admin</em> integration: the generated <code>ModelAdmin</code> uses
+    <p>Anvil wires up the <em>admin</em> integration: the generated <code>ModelAdmin</code> uses
     <code>SimpleHistoryAdmin</code> instead of <code>admin.ModelAdmin</code>, giving a full "History"
     button and change log in the Django admin UI automatically.</p>
     <p><code>django-simple-history</code> is already installed as part of django-anvil — just add
@@ -67,9 +67,9 @@
       <code>~</code>, <code>~</code> (two updates) — each with its own timestamp.</p>
     </div>
 
-    <h2 id="doctor">forge doctor</h2>
+    <h2 id="doctor">anvil doctor</h2>
     <p>Static checks, no database needed — safe to run in CI before <code>migrate</code>:</p>
-    <pre><code>python manage.py forge doctor</code></pre>
+    <pre><code>python manage.py anvil doctor</code></pre>
 
     <table>
       <tr><th>Check</th><th>Level</th></tr>
@@ -106,7 +106,7 @@
   <aside class="toc">
     <div class="toc-label">☰ On this page</div>
     <a href="#audit">Audit history</a>
-    <a href="#doctor">forge doctor</a>
+    <a href="#doctor">anvil doctor</a>
   </aside>
 </div>
 

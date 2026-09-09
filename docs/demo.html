@@ -48,7 +48,7 @@
       <tr><td><code>Product</code></td><td>RBAC (mixed <code>public</code>/codename rules), tenancy, <code>SoftDeleteViewSetMixin</code>, <code>TimestampedSerializerMixin</code></td></tr>
       <tr><td><code>Coupon</code></td><td>RBAC (all codenames, no <code>public</code>), tenancy, audit history</td></tr>
       <tr><td><code>Review</code></td><td><code>OwnerScopedViewSetMixin</code>, the <code>"authenticated"</code> permission rule, deliberately <em>not</em> tenant-scoped</td></tr>
-      <tr><td><code>Tag</code></td><td>Added live via <code>forge ai --apply</code> during development — proof the AI engine's propose→approve→write loop produces a genuinely working Resource, not just a plausible-looking diff</td></tr>
+      <tr><td><code>Tag</code></td><td>Added live via <code>anvil ai --apply</code> during development — proof the AI engine's propose→approve→write loop produces a genuinely working Resource, not just a plausible-looking diff</td></tr>
     </table>
 
     <h2 id="run-it">Run it yourself</h2>
@@ -57,7 +57,7 @@ pip install -e <span class="tok-str">".[dev]"</span>
 <span class="tok-kw">cd</span> demo
 python manage.py migrate
 python -m pytest products/ -v      <span class="tok-com"># 49 tests</span>
-python manage.py forge doctor</code></pre>
+python manage.py anvil doctor</code></pre>
 
     <h2 id="seed">seed_demo</h2>
     <p>Populates organizations, roles, users, and sample data — safe to re-run (everything is

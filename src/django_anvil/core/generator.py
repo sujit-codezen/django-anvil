@@ -296,7 +296,7 @@ def _resolve_tests_stub(app_dir: Path) -> str | None:
 
     return (
         f"WARNING: {stub_path} has content and conflicts with the tests/ "
-        f"package Forge needs to create -- move your tests into tests/ "
+        f"package Anvil needs to create -- move your tests into tests/ "
         f"and delete tests.py yourself, then re-run this command."
     )
 

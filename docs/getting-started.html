@@ -39,7 +39,7 @@
   <main>
     <div class="eyebrow">Introduction</div>
     <h1>Getting started</h1>
-    <p>Forge installs into an existing Django + REST Framework project — it isn't a replacement
+    <p>Anvil installs into an existing Django + REST Framework project — it isn't a replacement
     for either. If you don't have a project yet, make one first:</p>
 
     <pre><code><span class="tok-com"># new project, if you need one</span>
@@ -88,11 +88,11 @@ python manage.py startapp products</code></pre>
 
     <h2 id="generate">Generate everything</h2>
     <pre><code>python manage.py migrate
-python manage.py forge resource Product</code></pre>
+python manage.py anvil resource Product</code></pre>
     <p>That writes/merges into <code>products/api/serializers.py</code>, <code>products/api/views.py</code>,
     <code>products/api/urls.py</code>, registers <code>ProductAdmin</code>, and writes
     <code>products/tests/test_product_api.py</code>. If the app has more than one Resource, a second
-    <code>forge resource Coupon</code> adds its classes alongside <code>Product</code>'s in the same
+    <code>anvil resource Coupon</code> adds its classes alongside <code>Product</code>'s in the same
     files — the way a person would by hand, not by overwriting them.</p>
 
     <h2 id="wire-urls">Wire the URLs</h2>
@@ -103,11 +103,11 @@ path(<span class="tok-str">"api/"</span>, include(<span class="tok-str">"product
     with search, filtering, and ordering already wired from <code>searchable</code>/<code>filters</code>/<code>sortable</code>.</p>
 
     <h2 id="force">Regenerating with <code>--force</code></h2>
-    <p>By default, re-running <code>forge resource</code> never touches a file that already has
+    <p>By default, re-running <code>anvil resource</code> never touches a file that already has
     content — safe to run repeatedly, and safe against clobbering hand-edits. Once you change a
     Resource's declaration (add a field, turn on <code>tenant_scoped</code>, add <code>permissions</code>),
     regenerate that Resource's block specifically:</p>
-    <pre><code>python manage.py forge resource Product --force</code></pre>
+    <pre><code>python manage.py anvil resource Product --force</code></pre>
     <p><code>--force</code> only replaces <em>that Resource's</em> block in each shared file — it never
     touches another Resource's code in the same file, and it never touches <code>admin.py</code>'s
     registration (which routinely holds hand-written admin customizations) — see
@@ -116,7 +116,7 @@ path(<span class="tok-str">"api/"</span>, include(<span class="tok-str">"product
     <div class="callout info">
       <div class="icon">ℹ️</div>
       <p>See everything currently registered, or check the project for common mistakes, any time:</p>
-      <p><code>python manage.py forge list</code> &nbsp;·&nbsp; <code>python manage.py forge doctor</code></p>
+      <p><code>python manage.py anvil list</code> &nbsp;·&nbsp; <code>python manage.py anvil doctor</code></p>
     </div>
 
     <div class="page-nav">

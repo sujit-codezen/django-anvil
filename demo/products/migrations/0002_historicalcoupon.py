@@ -9,7 +9,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("forge_tenancy", "0001_initial"),
+        ("anvil_tenancy", "0001_initial"),
         ("products", "0001_initial"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
@@ -64,7 +64,7 @@ class Migration(migrations.Migration):
                         null=True,
                         on_delete=django.db.models.deletion.DO_NOTHING,
                         related_name="+",
-                        to="forge_tenancy.organization",
+                        to="anvil_tenancy.organization",
                     ),
                 ),
             ],

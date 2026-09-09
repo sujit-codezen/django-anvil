@@ -139,12 +139,12 @@ class Command(BaseCommand):
             self.stdout.write(self.style.SUCCESS(note))
         self.stdout.write(
             self.style.WARNING(
-                "Files written. This does not run makemigrations or forge resource for you -- "
+                "Files written. This does not run makemigrations or anvil resource for you -- "
                 "review the changes, then run those yourself, e.g.:"
             )
         )
         self.stdout.write(f"  python manage.py makemigrations {app_label}")
-        self.stdout.write("  python manage.py forge resource <NewModel>")
+        self.stdout.write("  python manage.py anvil resource <NewModel>")
 
     def _confirm(self, prompt):
         if not sys.stdin.isatty():

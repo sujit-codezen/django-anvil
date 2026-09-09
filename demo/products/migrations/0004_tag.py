@@ -7,7 +7,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("forge_tenancy", "0001_initial"),
+        ("anvil_tenancy", "0001_initial"),
         ("products", "0003_review"),
     ]
 
@@ -30,7 +30,7 @@ class Migration(migrations.Migration):
                     "organization",
                     models.ForeignKey(
                         on_delete=django.db.models.deletion.CASCADE,
-                        to="forge_tenancy.organization",
+                        to="anvil_tenancy.organization",
                     ),
                 ),
             ],

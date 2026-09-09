@@ -12,7 +12,7 @@ from django.db.models import Q
 class Role(Group):
     class Meta:
         proxy = True
-        app_label = "forge_rbac"
+        app_label = "anvil_rbac"
         verbose_name = "Role"
         verbose_name_plural = "Roles"
 

@@ -3,7 +3,7 @@ resources.py change. `suggest_feature` never writes anything itself --
 it only parses what the provider proposed. Diffing (`build_diff`) and
 actually writing files (`apply_changes`) are separate, deliberate steps,
 so a caller can show the diff and require explicit approval before ever
-calling `apply_changes` -- see the `forge ai --apply` command.
+calling `apply_changes` -- see the `anvil ai --apply` command.
 
 The provider is asked for complete file contents rather than a diff
 directly: LLMs are far more reliable at writing a whole file than at
@@ -45,7 +45,7 @@ Conventions to follow exactly:
         tenant_scoped = True  # only if the project already uses multi-tenancy
 
 - Do not write serializers.py, views.py, urls.py, or admin.py: running
-  `manage.py forge resource <Model>` generates those from the Resource
+  `manage.py anvil resource <Model>` generates those from the Resource
   class. Only propose models.py and resources.py.
 - If the project's existing models inherit from TenantScopedModel, any
   new model in the same feature area should too, for consistency.
@@ -132,9 +132,9 @@ def build_diff(changes: list[ProposedChange]) -> str:
 
 def apply_changes(changes: list[ProposedChange]) -> list[str]:
     """Actually writes the proposed files. Only call this after a human
-    has reviewed the diff and explicitly approved it -- see `forge ai
+    has reviewed the diff and explicitly approved it -- see `anvil ai
     --apply`, which is the only built-in caller. Does not run
-    `makemigrations` or `forge resource`; those are separate, deliberate
+    `makemigrations` or `anvil resource`; those are separate, deliberate
     steps a developer still takes themselves.
     """
     notes = []

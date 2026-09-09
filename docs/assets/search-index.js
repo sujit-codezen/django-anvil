@@ -2,7 +2,7 @@
 // Each entry: page (file), title (heading text), section (parent page title).
 const SEARCH_INDEX = [
   { page: "index.html", title: "Django Anvil", section: "Home", desc: "Overview and quick links" },
-  { page: "index.html#why-forge", title: "Why Forge", section: "Home", desc: "The boilerplate problem this solves" },
+  { page: "index.html#why-anvil", title: "Why Anvil", section: "Home", desc: "The boilerplate problem this solves" },
   { page: "index.html#how-it-works", title: "How it works", section: "Home", desc: "Define, generate, ship" },
   { page: "index.html#principles", title: "Principles", section: "Home", desc: "Wrap don't reinvent, fails closed, no black box" },
 
@@ -35,16 +35,16 @@ const SEARCH_INDEX = [
   { page: "tenancy.html#composition", title: "RBAC + tenancy composition", section: "Multi-tenancy" },
 
   { page: "ai-engine.html", title: "AI engine", section: "Core concepts", desc: "Analyze + suggest, apply only with approval" },
-  { page: "ai-engine.html#usage", title: "forge ai usage", section: "AI engine" },
+  { page: "ai-engine.html#usage", title: "anvil ai usage", section: "AI engine" },
   { page: "ai-engine.html#apply", title: "--apply", section: "AI engine", desc: "Approve and write files without leaving the terminal" },
   { page: "ai-engine.html#providers", title: "Providers", section: "AI engine", desc: "Anthropic, OpenAI, Gemini, Static" },
   { page: "ai-engine.html#providers", title: "OpenAIProvider, GeminiProvider", section: "AI engine" },
   { page: "ai-engine.html#providers", title: "Custom providers", section: "AI engine" },
   { page: "ai-engine.html#applying", title: "Applying the diff by hand", section: "AI engine" },
 
-  { page: "audit-and-doctor.html", title: "Audit history & forge doctor", section: "Core concepts", desc: "Change history and project health checks" },
-  { page: "audit-and-doctor.html#audit", title: "Audit history", section: "Audit history & forge doctor" },
-  { page: "audit-and-doctor.html#doctor", title: "forge doctor checks", section: "Audit history & forge doctor" },
+  { page: "audit-and-doctor.html", title: "Audit history & anvil doctor", section: "Core concepts", desc: "Change history and project health checks" },
+  { page: "audit-and-doctor.html#audit", title: "Audit history", section: "Audit history & anvil doctor" },
+  { page: "audit-and-doctor.html#doctor", title: "anvil doctor checks", section: "Audit history & anvil doctor" },
 
   { page: "demo.html", title: "Demo project", section: "Guides", desc: "Run the full example with seed data" },
   { page: "demo.html#resources", title: "The three demo Resources", section: "Demo project" },

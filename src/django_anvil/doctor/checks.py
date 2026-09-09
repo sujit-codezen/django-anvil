@@ -1,4 +1,4 @@
-"""`forge doctor` -- static checks over the project's settings and
+"""`anvil doctor` -- static checks over the project's settings and
 registered Resources. Nothing here touches the database; it's meant to
 run in CI or on a machine with no `migrate` yet.
 """
@@ -151,7 +151,7 @@ def _check_permission_codenames(resource, label, model) -> list[CheckResult]:
 
 def _check_missing_indexes(resource, label, model) -> list[CheckResult]:
     """A field that's filtered or sorted on a lot deserves a database
-    index; Forge already knows exactly which fields those are, from the
+    index; Anvil already knows exactly which fields those are, from the
     same Resource declaration that wires up the API -- most projects
     only discover this the hard way, under load.
     """

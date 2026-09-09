@@ -1,5 +1,5 @@
 """Populates the demo project with enough realistic data to explore every
-Forge feature by hand -- in the admin, in the browsable API, or with curl.
+Anvil feature by hand -- in the admin, in the browsable API, or with curl.
 Safe to re-run: everything is get_or_create'd.
 """
 

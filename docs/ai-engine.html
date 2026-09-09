@@ -46,12 +46,12 @@
     auto-apply.</p>
 
     <h2 id="usage">Usage</h2>
-    <pre><code>python manage.py forge ai <span class="tok-str">"add a coupon system with percent or fixed-amount \
+    <pre><code>python manage.py anvil ai <span class="tok-str">"add a coupon system with percent or fixed-amount \
 discounts, an optional expiry date, and a usage limit"</span> --app products --output coupon.patch</code></pre>
     <p>Omit <code>--output</code> to print the diff to the terminal instead of saving it.</p>
 
     <h3 id="apply">--apply: approve without leaving the terminal</h3>
-    <pre><code>python manage.py forge ai <span class="tok-str">"add a coupon system..."</span> --app products --apply</code></pre>
+    <pre><code>python manage.py anvil ai <span class="tok-str">"add a coupon system..."</span> --app products --apply</code></pre>
     <pre><code>--- a/products/models.py
 +++ b/products/models.py
 ...
@@ -60,7 +60,7 @@ Write 2 file(s) now (products/models.py, products/resources.py)? [y/N]: </code><
     stay true either way:</p>
     <ul>
       <li>It only ever writes <code>models.py</code>/<code>resources.py</code> — never
-      <code>makemigrations</code>, never <code>forge resource</code>. Those are separate,
+      <code>makemigrations</code>, never <code>anvil resource</code>. Those are separate,
       deliberate commands you run yourself once you've looked at what changed.</li>
       <li>In a non-interactive session (no TTY — CI, a piped command) <code>--apply</code> always
       declines and writes nothing, rather than guessing what you'd have said.</li>
@@ -88,7 +88,7 @@ Write 2 file(s) now (products/models.py, products/resources.py)? [y/N]: </code><
     extra to install: OpenAI, Anthropic, and Gemini's SDKs are all plain dependencies of
     django-anvil itself, so a single <code>pip install django-anvil</code> already has every
     one of them.</p>
-    <pre><code><span class="tok-fn">FORGE_AI_PROVIDER</span> = <span class="tok-str">"django_anvil.ai.providers.AnthropicProvider"</span>  <span class="tok-com"># dotted path to any AIProvider</span></code></pre>
+    <pre><code><span class="tok-fn">ANVIL_AI_PROVIDER</span> = <span class="tok-str">"django_anvil.ai.providers.AnthropicProvider"</span>  <span class="tok-com"># dotted path to any AIProvider</span></code></pre>
 
     <table>
       <tr><th>Provider</th><th>API key</th><th>Default model</th></tr>
@@ -97,7 +97,7 @@ Write 2 file(s) now (products/models.py, products/resources.py)? [y/N]: </code><
       <tr><td><code>GeminiProvider</code></td><td><code>GOOGLE_API_KEY</code></td><td><code>gemini-2.0-flash</code></td></tr>
       <tr><td><code>StaticProvider</code></td><td>none</td><td>n/a — returns a fixed response, for tests/CI</td></tr>
     </table>
-    <p>Every provider also accepts <code>FORGE_AI_API_KEY</code> and <code>FORGE_AI_MODEL</code> in
+    <p>Every provider also accepts <code>ANVIL_AI_API_KEY</code> and <code>ANVIL_AI_MODEL</code> in
     settings as vendor-agnostic overrides, if you'd rather not rely on each SDK's own env var or
     want to pin a specific model.</p>
 
@@ -110,28 +110,28 @@ Write 2 file(s) now (products/models.py, products/resources.py)? [y/N]: </code><
     </div>
 
     <pre><code><span class="tok-com"># settings.py</span>
-<span class="tok-fn">FORGE_AI_PROVIDER</span> = <span class="tok-str">"django_anvil.ai.providers.GeminiProvider"</span>
-<span class="tok-fn">FORGE_AI_MODEL</span> = <span class="tok-str">"gemini-2.0-flash"</span>       <span class="tok-com"># optional override</span>
-<span class="tok-fn">FORGE_AI_API_KEY</span> = env(<span class="tok-str">"GEMINI_KEY"</span>)         <span class="tok-com"># optional override; else GOOGLE_API_KEY env var</span></code></pre>
+<span class="tok-fn">ANVIL_AI_PROVIDER</span> = <span class="tok-str">"django_anvil.ai.providers.GeminiProvider"</span>
+<span class="tok-fn">ANVIL_AI_MODEL</span> = <span class="tok-str">"gemini-2.0-flash"</span>       <span class="tok-com"># optional override</span>
+<span class="tok-fn">ANVIL_AI_API_KEY</span> = env(<span class="tok-str">"GEMINI_KEY"</span>)         <span class="tok-com"># optional override; else GOOGLE_API_KEY env var</span></code></pre>
 
     <p>A <code>StaticProvider</code> also ships, for tests/CI: returns a fixed
-    <code>FORGE_AI_STATIC_RESPONSE</code> instead of calling anything, so the rest of the pipeline
+    <code>ANVIL_AI_STATIC_RESPONSE</code> instead of calling anything, so the rest of the pipeline
     (indexing, prompting, diff-building) can be exercised with no network and no API key.</p>
 
     <h3>Custom providers</h3>
-    <p>Any vendor Forge doesn't ship a wrapper for yet — a self-hosted model, an internal proxy,
+    <p>Any vendor Anvil doesn't ship a wrapper for yet — a self-hosted model, an internal proxy,
     Azure OpenAI, Ollama — is the same shape. <code>django_anvil.ai.providers.CustomProviderExample</code>
     is a working template (a bare HTTP POST to a local Ollama-style endpoint):</p>
     <pre><code><span class="tok-kw">class</span> <span class="tok-fn">CustomProviderExample</span>(AIProvider):
     <span class="tok-kw">def</span> <span class="tok-fn">__init__</span>(self):
-        self._endpoint = getattr(settings, <span class="tok-str">"FORGE_AI_ENDPOINT"</span>, <span class="tok-str">"http://localhost:11434/api/generate"</span>)
+        self._endpoint = getattr(settings, <span class="tok-str">"ANVIL_AI_ENDPOINT"</span>, <span class="tok-str">"http://localhost:11434/api/generate"</span>)
 
     <span class="tok-kw">def</span> <span class="tok-fn">complete</span>(self, system: <span class="tok-fn">str</span>, prompt: <span class="tok-fn">str</span>) -&gt; <span class="tok-fn">str</span>:
         body = json.dumps({<span class="tok-str">"prompt"</span>: <span class="tok-fn">f</span><span class="tok-str">"{system}\n\n{prompt}"</span>, <span class="tok-str">"stream"</span>: <span class="tok-kw">False</span>}).encode()
         request = urllib.request.Request(self._endpoint, data=body, headers={<span class="tok-str">"Content-Type"</span>: <span class="tok-str">"application/json"</span>})
         <span class="tok-kw">with</span> urllib.request.urlopen(request) <span class="tok-kw">as</span> response:
             <span class="tok-kw">return</span> json.loads(response.read())[<span class="tok-str">"response"</span>]</code></pre>
-    <p>Write your own the same way — one class, one method, point <code>FORGE_AI_PROVIDER</code> at
+    <p>Write your own the same way — one class, one method, point <code>ANVIL_AI_PROVIDER</code> at
     its dotted path (it doesn't need to live inside <code>django_anvil</code>; anywhere importable
     in your project works, e.g. <code>"myapp.ai.MyProvider"</code>).</p>
 
@@ -150,14 +150,14 @@ patch -p1 &lt; coupon.patch</code></pre>
     <p>Either way — <code>--apply</code> or applying the saved patch by hand — finish the same way,
     once you've looked at what changed:</p>
     <pre><code>python manage.py makemigrations products
-python manage.py forge resource Coupon</code></pre>
+python manage.py anvil resource Coupon</code></pre>
 
     <div class="callout info">
       <div class="icon">ℹ️</div>
-      <p>The system prompt tells the model Forge's own conventions explicitly — plain models in
+      <p>The system prompt tells the model Anvil's own conventions explicitly — plain models in
       <code>models.py</code>, a matching <code>Resource</code> in <code>resources.py</code>, and
       not to write <code>serializers.py</code>/<code>views.py</code>/<code>urls.py</code>/<code>admin.py</code>
-      itself, since <code>forge resource</code> generates those.</p>
+      itself, since <code>anvil resource</code> generates those.</p>
     </div>
 
     <div class="page-nav">

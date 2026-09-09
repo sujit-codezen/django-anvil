@@ -48,7 +48,7 @@ class Migration(migrations.Migration):
                     models.ForeignKey(
                         on_delete=django.db.models.deletion.CASCADE,
                         related_name="memberships",
-                        to="forge_tenancy.organization",
+                        to="anvil_tenancy.organization",
                     ),
                 ),
                 (

@@ -10,7 +10,7 @@ class Organization(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        app_label = "forge_tenancy"
+        app_label = "anvil_tenancy"
 
     def __str__(self):
         return self.name
@@ -23,7 +23,7 @@ class OrganizationMembership(models.Model):
     organization = models.ForeignKey(Organization, on_delete=models.CASCADE, related_name="memberships")
 
     class Meta:
-        app_label = "forge_tenancy"
+        app_label = "anvil_tenancy"
         unique_together = [("user", "organization")]
 
     def __str__(self):

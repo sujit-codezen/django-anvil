@@ -9,7 +9,7 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ("forge_tenancy", "0001_initial"),
+        ("anvil_tenancy", "0001_initial"),
     ]
 
     operations = [
@@ -42,7 +42,7 @@ class Migration(migrations.Migration):
                     "organization",
                     models.ForeignKey(
                         on_delete=django.db.models.deletion.CASCADE,
-                        to="forge_tenancy.organization",
+                        to="anvil_tenancy.organization",
                     ),
                 ),
             ],
@@ -73,7 +73,7 @@ class Migration(migrations.Migration):
                     "organization",
                     models.ForeignKey(
                         on_delete=django.db.models.deletion.CASCADE,
-                        to="forge_tenancy.organization",
+                        to="anvil_tenancy.organization",
                     ),
                 ),
             ],
